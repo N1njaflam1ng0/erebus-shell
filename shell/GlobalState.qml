@@ -1,0 +1,117 @@
+// ┌──────────────────────────────────────────────────────────────────────┐
+// │█▀▀▀▀▀▀▀▀█░░░█▀▀░█░░░█▀█░█▀▄░█▀█░█░░░░░█▀▀░▀█▀░█▀█░▀█▀░█▀▀░░█▀▀▀▀▀▀▀▀█│
+// │█▀▀▀▀▀▀▀▀█░░░█░█░█░░░█░█░█▀▄░█▀█░█░░░░░▀▀█░░█░░█▀█░░█░░█▀▀░░█▀▀▀▀▀▀▀▀█│
+// │█▀▀▀▀▀▀▀▀█░░░▀▀▀░▀▀▀░▀▀▀░▀▀░░▀░▀░▀▀▀░░░▀▀▀░░▀░░▀░▀░░▀░░▀▀▀░░█▀▀▀▀▀▀▀▀█│
+// │█▀▀▀▀▀▀▀▀▀──────────────────────────────────────────────────▀▀▀▀▀▀▀▀▀█│
+// ├┤ Author  : Daniel Berg <mail@roosta.sh>                             ├┤
+// ││ Repo    : https://github.com/roosta/dotfiles                       ││
+// ││ Site    : https://www.roosta.sh                                    ││
+// ├┤ License : GNU General Public License v3                            ├┤
+// ┆└────────────────────────────────────────────────────────────────────┘┆
+
+pragma Singleton
+pragma ComponentBehavior: Bound
+import Quickshell
+import QtQuick
+import qs.config
+// import qs.services
+// import Quickshell.Wayland
+// import qs.utils
+
+// Tray monitor id not needed after all, check TrayMenu state, but I might as
+// well track it now that I've configured it here
+Singleton {
+  id: root
+  property bool launcherOpen: false
+  property string launcherMonitorId: ""
+  property string trayMonitorId: ""
+  property string launcherMode: Config.defaultMode
+  property bool calendarOpen: false
+  property string calendarMonitorId: ""
+  property bool overlayOpen: root.launcherOpen || root.trayMenuOpen || root.calendarOpen
+  property QsMenuHandle activeMenu: null
+  property bool trayMenuOpen: false
+  property int menuDirection: Qt.LeftToRight
+  property int menuIndex: 0
+  property string searchQuery: ""
+  property int matchCount: 0
+  property bool itemDrawerActive: false
+
+  Timer {
+    id: timer
+    interval: Style.durations.small
+    onTriggered: {
+      root.launcherMonitorId = ""
+      root.launcherMode = Config.defaultMode
+      root.menuDirection = Qt.LeftToRight
+      root.menuIndex = 0
+      root.searchQuery = ""
+    }
+  }
+
+  function openTrayMenu(menu, id = Config.primaryDisplay) {
+    if (!menu) {
+      console.error("No provided menu, cant open menu")
+      return
+    }
+    root.activeMenu = menu
+    trayMenuOpen = true
+    trayMonitorId = id
+  }
+
+  function closeTrayMenu() {
+    root.activeMenu = null
+    trayMenuOpen = false
+  }
+
+  function openLauncher({
+    id = Config.primaryDisplay,
+    mode = null,
+    direction = Qt.LeftToRight,
+    index = 0
+  }) {
+    launcherMonitorId = id
+    if (index >= 0) {
+      root.menuIndex = index
+    }
+    if (direction !== Qt.LeftToRight) {
+      root.menuDirection = direction
+    }
+    if (mode) {
+      root.launcherMode = mode
+    }
+    launcherOpen = true
+  }
+
+  // The calendar is a plain dropdown: unlike the launcher it takes no keyboard
+  // focus and doesn't bump the exclusion zone, it just floats over the windows.
+  function openCalendar(id = Config.primaryDisplay) {
+    root.calendarMonitorId = id
+    root.calendarOpen = true
+  }
+
+  function closeCalendar() {
+    root.calendarOpen = false
+  }
+
+  function toggleCalendar(id = Config.primaryDisplay) {
+    if (root.calendarOpen && root.calendarMonitorId === id) {
+      closeCalendar()
+    } else {
+      openCalendar(id)
+    }
+  }
+
+  function closeLauncher() {
+    launcherOpen = false
+    timer.restart()
+  }
+
+  function toggleLauncher({ id, mode = null, direction = Qt.LeftToRight, index = 0 }) {
+    if (launcherOpen) {
+      closeLauncher()
+    } else {
+      openLauncher({ id, mode, direction, index })
+    }
+  }
+}
