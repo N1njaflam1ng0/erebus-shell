@@ -1,17 +1,5 @@
 # Calendar backend for the bar's calendar panel, on Evolution Data Server.
-#
-# Why EDS and not the Google Calendar API directly: gcalcli (and anything else
-# speaking to Google's API) needs an OAuth client from a Google Cloud project,
-# and a personal project stays in "Testing" publishing status unless you own a
-# domain, host a home page and privacy policy on it, and verify that domain in
-# Search Console. Testing status revokes the refresh token every 7 days. EDS
-# ships its own already-verified Google OAuth credentials, so the whole Cloud
-# project problem disappears: you add the account once in Evolution and the
-# token keeps working.
-#
-# EDS also gets us recurring events for free -- generate_instances_sync expands
-# an RRULE into one entry per occurrence, which the previous gcalcli-backed
-# version never did.
+
 { ... }: {
   flake.nixosModules.calendar = { pkgs, ... }: {
     # The registry and calendar factory the helper talks to over D-Bus. Both are
