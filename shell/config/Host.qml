@@ -33,6 +33,8 @@ Singleton {
   readonly property string wallpaper: "erebus-wallpaper"
   readonly property string calendar: "erebus-calendar"
   readonly property string brightnessctl: "brightnessctl"
+  readonly property string kbdBacklight: "erebus-kbd-backlight"
+  readonly property string brightness: "erebus-brightness"
   readonly property string sysmon: "btop"
   readonly property string cava: "cava"
   readonly property string hyprctl: "hyprctl"

@@ -36,6 +36,8 @@
         readonly property string wallpaper: "erebus-wallpaper"
         readonly property string calendar: "erebus-calendar"
         readonly property string brightnessctl: "${pkgs.brightnessctl}/bin/brightnessctl"
+        readonly property string kbdBacklight: "erebus-kbd-backlight"
+        readonly property string brightness: "erebus-brightness"
         readonly property string sysmon: "${pkgs.btop}/bin/btop"
         readonly property string cava: "${pkgs.cava}/bin/cava"
         readonly property string hyprctl: "${hyprctl}"

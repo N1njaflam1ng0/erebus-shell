@@ -6,6 +6,7 @@ pragma ComponentBehavior: Bound
 
 import Quickshell
 import Quickshell.Io
+import Quickshell.Hyprland
 import QtQuick
 import qs.config
 
@@ -58,5 +59,15 @@ Singleton {
     id: setProc
     running: false
     onExited: root.refresh()
+  }
+
+  // Hyprland runs erebus-brightness on the key, not this service, so that the
+  // panel still dims with the shell dead; the helper dispatches this global
+  // afterwards. Without it `value` would only ever hold its startup reading and
+  // the OSD would never fire.
+  GlobalShortcut { // qmllint disable unresolved-type
+    name: "brightnessChanged"
+    description: "Re-read the panel backlight after erebus-brightness stepped it"
+    onPressed: root.refresh()
   }
 }

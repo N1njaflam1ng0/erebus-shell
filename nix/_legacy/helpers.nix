@@ -9,6 +9,14 @@
     hyprctl = "${inputs.hyprland.packages.${system}.hyprland}/bin/hyprctl";
     qylock = inputs.qylock.packages.${system}.qylock-quickshell;
 
+    # Nudge the shell to re-read a value it cannot observe: sysfs gives no change
+    # notification, so an OSD would otherwise never fire for a key the shell did
+    # not press itself. hyprctl dispatch takes a lua expression as of 0.56 -- the
+    # old `dispatch global quickshell:x` form is a parse error now. A name no
+    # shell has registered still answers ok, which is the point: the key keeps
+    # working with the bar dead.
+    notify = name: "${hyprctl} dispatch 'hl.dsp.global(\"quickshell:${name}\")' >/dev/null 2>&1 || true";
+
     power = pkgs.writeShellScriptBin "erebus-power" ''
       set -eu
       case "''${1:-}" in
@@ -83,12 +91,72 @@
       esac
     '';
 
+    # Fn+Up/Down on the ASUS laptop emit KEY_KBDILLUM{UP,DOWN}; nothing in the
+    # kernel acts on them, so the step has to happen here. The LED is named per
+    # vendor (asus::kbd_backlight here, tpacpi::kbd_backlight on a ThinkPad) and
+    # desktops have none at all, so glob for it and no-op quietly when absent --
+    # this helper is in the shared profile, not a laptop-only module.
+    #
+    # brightnessctl needs no udev rule or setuid for this: with -c leds it goes
+    # through logind's SetBrightness, which the active session is allowed to call.
+    kbdBacklight = pkgs.writeShellScriptBin "erebus-kbd-backlight" ''
+      set -eu
+      led=""
+      for d in /sys/class/leds/*kbd_backlight*; do
+        [ -e "$d" ] || continue
+        led=''${d##*/}
+        break
+      done
+      [ -n "$led" ] || exit 0
+
+      bctl="${pkgs.brightnessctl}/bin/brightnessctl -q -c leds -d $led"
+      cur() { cat "/sys/class/leds/$led/brightness"; }
+
+      case "''${1:-}" in
+        # Steps are raw levels, not percentages: this backlight has 4 of them
+        # (0-3), and brightnessctl clamps at both ends.
+        up)     $bctl set +1 ;;
+        down)   $bctl set 1- ;;
+        toggle)
+          if [ "$(cur)" -gt 0 ]; then $bctl set 0; else $bctl set 100%; fi ;;
+        # What KbdBacklight.qml parses. sysfs, not brightnessctl -m, because the
+        # LED name is already resolved here and the format stays ours.
+        status) echo "$(cur) $(cat "/sys/class/leds/$led/max_brightness")"; exit 0 ;;
+        *)
+          echo "usage: erebus-kbd-backlight {up|down|toggle|status}" >&2
+          exit 2 ;;
+      esac
+
+      ${notify "kbdBacklightChanged"}
+    '';
+
+    # The panel backlight. Same shape as above so both keys reach the OSD the
+    # same way; -n stops 5%- at 1, since a black panel is indistinguishable from
+    # a crashed session and can only be undone by feel.
+    brightness = pkgs.writeShellScriptBin "erebus-brightness" ''
+      set -eu
+      bctl="${pkgs.brightnessctl}/bin/brightnessctl -q -c backlight"
+
+      case "''${1:-}" in
+        up)     $bctl set 5%+ ;;
+        down)   $bctl -n set 5%- ;;
+        status) exec ${pkgs.brightnessctl}/bin/brightnessctl -c backlight -m info ;;
+        *)
+          echo "usage: erebus-brightness {up|down|status}" >&2
+          exit 2 ;;
+      esac
+
+      ${notify "brightnessChanged"}
+    '';
+
   in {
     home.packages = [
       power
       screenshot
       colorpicker
       audioSwitch
+      kbdBacklight
+      brightness
     ];
   };
 }

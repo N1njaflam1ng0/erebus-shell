@@ -13,7 +13,7 @@ Item {
   id: root
   required property string monitorId
 
-  property string kind: "volume"     // volume | brightness
+  property string kind: "volume"     // volume | brightness | kbd
   property real level: 0
   property bool muted: false
   property bool shown: false
@@ -56,6 +56,13 @@ Item {
     }
   }
 
+  Connections {
+    target: KbdBacklight
+    function onChanged() {
+      if (root.ready && KbdBacklight.available) root.flash("kbd", KbdBacklight.value, false);
+    }
+  }
+
   BorderRect {
     anchors.fill: parent
     color: Style.colors.black
@@ -70,6 +77,7 @@ Item {
       Text {
         text: {
           if (root.kind === "brightness") return "󰃠";
+          if (root.kind === "kbd") return "󰌌";
           if (root.muted) return "󰝟";
           if (root.level <= 0.01) return "󰕿";
           if (root.level < 0.5) return "󰖀";
@@ -96,7 +104,12 @@ Item {
       }
 
       Text {
-        text: root.muted && root.kind === "volume" ? "muted" : `${Math.round(root.level * 100)}%`
+        text: {
+          // Four raw steps read better as 2/3 than as 67%.
+          if (root.kind === "kbd") return `${KbdBacklight.level}/${KbdBacklight.max}`;
+          if (root.muted && root.kind === "volume") return "muted";
+          return `${Math.round(root.level * 100)}%`;
+        }
         font.family: Style.font.main
         font.pointSize: Style.font.small
         color: Style.colors.white
