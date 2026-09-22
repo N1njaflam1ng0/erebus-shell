@@ -32,6 +32,7 @@ Singleton {
   readonly property string clipboard: "erebus-clipboard"
   readonly property string wallpaper: "erebus-wallpaper"
   readonly property string calendar: "erebus-calendar"
+  readonly property string calc: "erebus-calc"
   readonly property string brightnessctl: "brightnessctl"
   readonly property string kbdBacklight: "erebus-kbd-backlight"
   readonly property string brightness: "erebus-brightness"

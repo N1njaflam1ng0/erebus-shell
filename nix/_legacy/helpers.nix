@@ -2,12 +2,12 @@
 # from a submodule that isn't vendored and is written for his Arch host, so these
 # are Nix-native equivalents following the repo's writeShellScriptBin idiom
 # (see wdisplays.nix, search.nix).
-{ inputs, ... }: {
+{ self, inputs, ... }: {
   flake.homeModules.quickshell-helpers = { pkgs, lib, ... }:
   let
     system = pkgs.stdenv.hostPlatform.system;
     hyprctl = "${inputs.hyprland.packages.${system}.hyprland}/bin/hyprctl";
-    qylock = inputs.qylock.packages.${system}.qylock-quickshell;
+    lock = import ../_lock.nix { inherit pkgs inputs self; };
 
     # Nudge the shell to re-read a value it cannot observe: sysfs gives no change
     # notification, so an OSD would otherwise never fire for a key the shell did
@@ -24,7 +24,7 @@
         reboot)    exec ${pkgs.systemd}/bin/systemctl reboot ;;
         suspend)   exec ${pkgs.systemd}/bin/systemctl suspend ;;
         hibernate) exec ${pkgs.systemd}/bin/systemctl hibernate ;;
-        lock)      exec ${qylock}/bin/qylock-lock ;;
+        lock)      exec ${lock}/bin/erebus-lock ;;
         logout)    exec ${hyprctl} dispatch exit ;;
         *)
           echo "usage: erebus-power {shutdown|reboot|suspend|hibernate|lock|logout}" >&2
@@ -157,6 +157,7 @@
       audioSwitch
       kbdBacklight
       brightness
+      lock
     ];
   };
 }

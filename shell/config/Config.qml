@@ -77,6 +77,15 @@ Singleton {
       iconId: "applications-utilities"
     },
     {
+      id: "erebus-mode-calc",
+      name: "Calculator",
+      comment: "Evaluate maths, unit and currency conversions",
+      mode: "calc",
+      genericName: "Menu",
+      categories: ["Calculator", "Utility"],
+      iconId: "accessories-calculator"
+    },
+    {
       id: "erebus-mode-audio",
       name: "Audio",
       comment: "Switch the default audio output",

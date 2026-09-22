@@ -92,6 +92,21 @@ Item {
     launcherList.list.decrementCurrentIndex()
   }
 
+  // The calculator is the one source driven by the query rather than the mode:
+  // in calc mode every keystroke is an expression, in apps mode only the ones
+  // that look like maths, so searching for "1password" never spawns qalc.
+  function evaluateQuery() {
+    const s = GlobalState.launcherMode
+    const q = GlobalState.searchQuery
+    if (s === "calc") {
+      LauncherData.evaluate(q.replace(`${Config.menuPrefix}/calc`, ""))
+    } else if (s === "apps" || s === "") {
+      LauncherData.evaluate(LauncherData.isExpression(q) ? q : "")
+    } else {
+      LauncherData.evaluate("")
+    }
+  }
+
   // Clipboard history and the wallpaper list are read from external commands, so
   // re-read them on entering the mode rather than caching at startup.
   Connections {
@@ -100,6 +115,10 @@ Item {
       if (GlobalState.launcherMode === "clipboard") LauncherData.refreshClipboard();
       else if (GlobalState.launcherMode === "wallpaper") LauncherData.refreshWallpapers();
       else if (GlobalState.launcherMode === "display") LauncherData.refreshMonitors();
+      root.evaluateQuery();
+    }
+    function onSearchQueryChanged() {
+      root.evaluateQuery();
     }
   }
 
@@ -245,8 +264,12 @@ Item {
         } else if (s === "wallpaper") {
           const q = GlobalState.searchQuery.replace(`${Config.menuPrefix}/wallpaper`, "")
           return Fuzzy.query(q, LauncherData.wallpaperData)
+        } else if (s === "calc") {
+          return LauncherData.calcData
         } else {
-          return Fuzzy.query(GlobalState.searchQuery, LauncherData.appsData)
+          // calcData is empty unless the query looks like maths, so in the
+          // common case this is just the app list.
+          return [...LauncherData.calcData, ...Fuzzy.query(GlobalState.searchQuery, LauncherData.appsData)]
         }
       }
 
@@ -268,6 +291,7 @@ Item {
           || s === "utils"
           || s === "clipboard"
           || s === "wallpaper"
+          || s === "calc"
           || s === "apps"
           || s === "") {
           LauncherData.launch(entry)

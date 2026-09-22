@@ -235,6 +235,94 @@ Singleton {
     }
   }
 
+  // ---- Calculator ------------------------------------------------------------
+  // Backed by `erebus-calc eval`, which is one qalc process per query, so the
+  // keystrokes are debounced and the running process is never re-argv'd.
+  //
+  // qalc will "evaluate" prose as readily as maths -- `not an expression` comes
+  // back as `n = 0` -- so an empty result is not a reliable "this wasn't maths"
+  // signal. isExpression() is what actually keeps stray cards out of the app
+  // list; Launcher.qml gates on it before calling evaluate().
+  property string calcExpr: ""
+  property list<var> calcEntries: []
+  // Deliberately not run through Fuzzy: the row set is already exactly the answer.
+  property list<var> calcData: calcEntries
+
+  // Conservative on purpose: a false positive pushes a nonsense card above the
+  // app the user is actually searching for, and qalc answers nonsense happily
+  // ("7-zip" evaluates to "7 − iz", "1password" to "1 pa·word·s²").
+  //
+  // Note `to` and not `in` — qalc reads `in` as the inch unit, so "2 GB in MB"
+  // comes back as "2000 in·MB²". `to` is the conversion keyword that works.
+  function isExpression(q) {
+    const s = q.trim();
+    // Three characters is the shortest real sum ("1+1"), and an app search
+    // effectively never opens with a digit or a bracket.
+    if (s.length < 3) return false;
+    if (!/^[0-9(.+-]/.test(s)) return false;
+    if (/\bto\b/.test(s)) return true;
+    // An operator only counts with a digit, space or bracket on both sides,
+    // which is what keeps "7-zip" out.
+    return /(^|[\d\s)])\s*[-+*/^%]\s*($|[\d\s(.])/.test(s);
+  }
+
+  function evaluate(expr) {
+    const s = expr.trim();
+    if (s === root.calcExpr) return;
+    root.calcExpr = s;
+    if (!s.length) {
+      calcDebounce.stop();
+      root.calcEntries = [];
+      return;
+    }
+    calcDebounce.restart();
+  }
+
+  Timer {
+    id: calcDebounce
+    interval: 120
+    onTriggered: {
+      // One qalc at a time. Killing a run mid-flight would let its stdout land
+      // after the next one's, so wait a tick instead -- and assign command
+      // rather than binding it, so the argv of a running process never changes.
+      if (calcProc.running) {
+        calcDebounce.restart();
+        return;
+      }
+      calcProc.command = [Host.calc, "eval", root.calcExpr];
+      calcProc.running = true;
+    }
+  }
+
+  Process {
+    id: calcProc
+    command: [Host.calc, "eval", ""]
+    running: false
+    stdout: StdioCollector {
+      onStreamFinished: {
+        const result = this.text.trim();
+        // The expression this run was actually started with; the query may have
+        // moved on since, in which case the pending debounce re-dispatches.
+        const expr = calcProc.command[2];
+        if (expr !== root.calcExpr) return;
+        // qalc echoes an expression it could not reduce straight back.
+        if (!result.length || result === expr) {
+          root.calcEntries = [];
+          return;
+        }
+        root.calcEntries = [{
+          id: "erebus-calc-result",
+          name: result,
+          comment: `${expr} — Enter to copy`,
+          genericName: "Calculator",
+          categories: ["Calculator"],
+          iconId: "accessories-calculator",
+          script: [Host.calc, "copy", result]
+        }];
+      }
+    }
+  }
+
   function launch(entry) {
     if (entry.script) {
       Quickshell.execDetached({
