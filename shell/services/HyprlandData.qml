@@ -30,8 +30,8 @@ Singleton {
   property var addresses: []
   property var windowByAddress: ({})
   property var workspaces: []
-  property var workspaceIds: []
-  property var workspaceById: ({})
+  property var workspaceAddresses: []
+  property var workspaceByAddress: ({})
   property var workspacesByMonitor: ({})
   property var windowsByWorkspace: ({})
   property var activeWorkspace: null
@@ -42,6 +42,30 @@ Singleton {
   property string submap: ""
   property bool submapActive: submap.length > 0
 
+  // Hyprland >= 0.57 only emits a workspace "id" for numbered workspaces;
+  // specials and named ones have none. "address" is the one key every
+  // workspace carries, so the shell keys off it throughout.
+  readonly property bool specialActive: monitors.some(m => {
+    return (m?.specialWorkspace?.address ?? "") !== ""
+  })
+
+  /**
+   * Address of the workspace active on a given monitor, "" when unknown.
+   */
+  function activeWorkspaceAddressFor(monitorName: string): string {
+    const mon = root.monitors.find(m => m.name === monitorName)
+    return mon?.activeWorkspace?.address ?? ""
+  }
+
+  /**
+   * Turns a workspace address into a dispatcher selector. Numbered and special
+   * addresses already are selectors; a named workspace needs the name: prefix.
+   */
+  function selectorFor(address: string): string {
+    if (address.startsWith("special:") || /^\d+$/.test(address))
+      return address
+    return `name:${address}`
+  }
 
   /**
    * Urgent windows
@@ -127,7 +151,7 @@ Singleton {
             tempWinByAddress[win.address] = win;
           }
           root.windowByAddress = tempWinByAddress;
-          root.windowsByWorkspace = Functions.groupBy(root.windowList, w => w.workspace.id)
+          root.windowsByWorkspace = Functions.groupBy(root.windowList, w => w.workspace.address)
           root.addresses = root.windowList.map(win => win.address);
         }
       }
@@ -167,22 +191,26 @@ Singleton {
       id: workspacesCollector
       onStreamFinished: {
         if (workspacesCollector?.text) {
+          // Specials sort last, then numerically by address (a numbered
+          // workspace's address is its number as a string), then lexically.
+          const rank = ws => ws.type === "special" ? 1 : 0;
+          const num = ws => /^\d+$/.test(ws.address) ? Number(ws.address) : Infinity;
           const workspaces = JSON.parse(workspacesCollector.text)
             .sort((a, b) => {
-              if (a.id < 0 && b.id >= 0) return 1;
-              if (a.id >= 0 && b.id < 0) return -1;
-              return a.id - b.id;
+              if (rank(a) !== rank(b)) return rank(a) - rank(b);
+              if (num(a) !== num(b)) return num(a) - num(b);
+              return a.address.localeCompare(b.address);
             });
           root.workspaces = workspaces
-          root.special = workspaces.filter(w => w.name.includes("special"))
+          root.special = workspaces.filter(w => w.type === "special")
           root.workspacesByMonitor = Functions.groupBy(root.workspaces, x => x.monitor)
-          let byId = {};
+          let byAddress = {};
           for (var i = 0; i < root.workspaces.length; ++i) {
             var ws = root.workspaces[i];
-            byId[ws.id] = ws;
+            byAddress[ws.address] = ws;
           }
-          root.workspaceById = byId
-          root.workspaceIds = root.workspaces.map(ws => ws.id);
+          root.workspaceByAddress = byAddress
+          root.workspaceAddresses = root.workspaces.map(ws => ws.address);
         }
       }
     }

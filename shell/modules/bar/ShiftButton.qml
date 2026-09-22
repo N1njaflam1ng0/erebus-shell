@@ -1,7 +1,6 @@
 import QtQuick
 import Quickshell.Wayland
 import qs.services
-import Quickshell
 import qs.components
 // import qs.services
 import Quickshell.Hyprland
@@ -26,9 +25,8 @@ Button {
 
   required property string monitorId
 
-  readonly property HyprlandMonitor monitor: Hyprland
-    .monitorFor(root.QsWindow.window?.screen)
-  readonly property int activeWorkspaceId: monitor?.activeWorkspace?.id ?? 1
+  readonly property string activeWorkspaceAddress: HyprlandData
+    .activeWorkspaceAddressFor(monitorId)
   property var workspaces: HyprlandData.workspacesByMonitor[monitorId] ?? []
   property var persistent: workspaces.filter(w => w.ispersistent)
 
@@ -61,8 +59,8 @@ Button {
   Process {
     id: moveWindow
     running: false
-    property int wsid: 0
-    command: ["hyprctl", "eval", `hl.config({cursor = { no_warps = true }}); hl.dispatch(hl.dsp.window.move({ workspace = ${wsid}, window = 'activewindow', follow = true })); hl.config({cursor = { no_warps = false }})
+    property string wsAddress: ""
+    command: ["hyprctl", "eval", `hl.config({cursor = { no_warps = true }}); hl.dispatch(hl.dsp.window.move({ workspace = "${wsAddress}", window = 'activewindow', follow = true })); hl.config({cursor = { no_warps = false }})
     `]
   }
 
@@ -70,7 +68,11 @@ Button {
     root.active = true
     pressFlash.restart()
 
-    let move = activeWorkspaceId + root.direction
+    // Only numbered workspaces shift; their address is the number as a string.
+    const current = /^\d+$/.test(root.activeWorkspaceAddress)
+      ? Number(root.activeWorkspaceAddress) : 0
+    if (current === 0) { return }
+    let move = current + root.direction
     let focusedMonitor = Hyprland.focusedMonitor?.name ?? ""
     if (focusedMonitor !== Config.displays.center && focusedMonitor !== Config.displays.tv) { return }
 
@@ -80,7 +82,7 @@ Button {
       } else { return }
     }
     if (move > 0) {
-      moveWindow.wsid = move
+      moveWindow.wsAddress = String(move)
       moveWindow.running = true
     }
   }

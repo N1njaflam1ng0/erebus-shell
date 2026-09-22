@@ -72,7 +72,7 @@ Singleton {
     } else {
       return {
         title: "Desktop",
-        desc: `Workspace ${HyprlandData.activeWorkspace?.id} (${HyprlandData.activeWorkspace?.monitor})`,
+        desc: `Workspace ${HyprlandData.activeWorkspace?.name} (${HyprlandData.activeWorkspace?.monitor})`,
         icon: Quickshell.iconPath("workspace-switcher-top-left")
       }
     }
