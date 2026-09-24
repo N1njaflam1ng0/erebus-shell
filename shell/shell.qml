@@ -17,6 +17,7 @@ import Quickshell
 import qs.modules.bar
 import qs.modules.launcher
 import qs.modules.calendar
+import qs.modules.network
 import qs.modules.tray
 import QtQuick
 import Quickshell.Wayland
@@ -60,9 +61,11 @@ ShellRoot {
         screen: scope.modelData
 
         WlrLayershell.exclusionMode: ExclusionMode.Ignore
-        // OnDemand, not Exclusive: the calendar's quick-add field can be
-        // clicked into, but opening the panel doesn't steal the keyboard.
+        // OnDemand, not Exclusive: the calendar's quick-add field and the wifi
+        // panel's password field can be clicked into, but opening either panel
+        // doesn't steal the keyboard.
         WlrLayershell.keyboardFocus: GlobalState.launcherOpen || GlobalState.calendarOpen
+          || GlobalState.wifiOpen
         ? WlrKeyboardFocus.OnDemand
         : WlrKeyboardFocus.None
 
@@ -71,7 +74,8 @@ ShellRoot {
           windows: [main]
           active: (GlobalState.launcherOpen && GlobalState.launcherMonitorId === scope.monitorId)
             || (GlobalState.calendarOpen && GlobalState.calendarMonitorId === scope.monitorId)
-          // Deliberately empty, for both overlays. Hyprland fires `cleared`
+            || (GlobalState.wifiOpen && GlobalState.wifiMonitorId === scope.monitorId)
+          // Deliberately empty, for every overlay. Hyprland fires `cleared`
           // immediately after the grab activates, so closing from here shuts
           // the panel the moment it opens. Click-outside is handled instead by
           // the MouseArea on `content` below: this window is fullscreen and
@@ -154,6 +158,7 @@ ShellRoot {
               if (GlobalState.launcherOpen) { GlobalState.closeLauncher() }
               if (GlobalState.trayMenuOpen) { GlobalState.closeTrayMenu() }
               if (GlobalState.calendarOpen) { GlobalState.closeCalendar() }
+              if (GlobalState.wifiOpen) { GlobalState.closeWifi() }
             }
           }
           states: [
@@ -186,6 +191,11 @@ ShellRoot {
 
         CalendarPanel {
           id: calendarPanel
+          monitorId: scope.monitorId
+        }
+
+        WifiPanel {
+          id: wifiPanel
           monitorId: scope.monitorId
         }
 

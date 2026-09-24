@@ -125,7 +125,7 @@ Item {
               // anchors.rightMargin: Style.spacing.p1
               // anchors.fill: parent
               SysmonWidget { }
-              NetworkWidget { }
+              NetworkWidget { monitorId: root.monitorId }
               BluetoothWidget { }
               BatteryWidget { }
               Separator {}

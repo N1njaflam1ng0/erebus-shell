@@ -54,6 +54,15 @@ Singleton {
   }
   readonly property Calendar calendar: Calendar { }
 
+  component Wifi: QtObject {
+    readonly property int width: 320 * Config.scale
+    // Tall enough for ~8 networks plus header and footer; the list scrolls
+    // past that rather than the panel growing to cover the screen.
+    readonly property int height: 400 * Config.scale
+    readonly property int rowHeight: 34 * Config.scale
+  }
+  readonly property Wifi wifi: Wifi { }
+
   component Font: QtObject {
     readonly property string main: "CaskaydiaCove Nerd Font"
     readonly property string symbols: "Symbols Nerd Font"

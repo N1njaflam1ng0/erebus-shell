@@ -1,9 +1,17 @@
 # The Quickshell desktop shell. QML source is vendored in assets/quickshell/
 # (adapted from roosta/dotfiles, GPLv3); this module pins the host-specific values
 # into config/Host.qml and runs the result straight out of the store.
-{ self, inputs, ... }: {
-  flake.homeModules.quickshell = { pkgs, lib, config, ... }:
-  let
+{
+  self,
+  inputs,
+  ...
+}: {
+  flake.homeModules.quickshell = {
+    pkgs,
+    lib,
+    config,
+    ...
+  }: let
     cfg = config.erebus.shell;
     system = pkgs.stdenv.hostPlatform.system;
     hyprctl = "${inputs.hyprland.packages.${system}.hyprland}/bin/hyprctl";
@@ -50,10 +58,33 @@
       }
     '';
 
-    shellSrc = pkgs.runCommand "erebus-shell-src" { } ''
+    shellSrc = pkgs.runCommand "erebus-shell-src" {} ''
       cp -r ${self}/assets/quickshell $out
       chmod -R u+w $out
       cp ${hostQml} $out/config/Host.qml
+
+      # A new QML file that was never `git add`ed is silently absent from
+      # ${"$"}{self}: flakes only see tracked files, so a dirty tree still
+      # contributes modified tracked files while new ones vanish. The shell then
+      # fails to load outright ("module qs.X is not installed") and the session
+      # comes up with no bar at all -- which is how that lands on a user, since
+      # nothing else reports it. Fail the rebuild instead.
+      #
+      # Only catches a missing directory. A missing singleton inside a directory
+      # that does exist still gets through, so `git add` before a rebuild is
+      # still the real guard.
+      missing=0
+      for mod in $(grep -rhoE '^import qs\.[A-Za-z0-9_.]+' $out --include='*.qml' \
+                   | sed 's/^import qs\.//' | sort -u); do
+        if [ ! -d "$out/$(echo "$mod" | tr . /)" ]; then
+          echo "erebus-shell: unresolvable QML import: qs.$mod" >&2
+          missing=1
+        fi
+      done
+      if [ $missing -ne 0 ]; then
+        echo "erebus-shell: did you forget to 'git add' a new QML file?" >&2
+        exit 1
+      fi
     '';
 
     # `qs -p <dir>` takes any path, so the shell runs from the store the same way
@@ -91,7 +122,7 @@
       };
       outputs = lib.mkOption {
         type = lib.types.listOf lib.types.str;
-        default = [ ];
+        default = [];
         description = "Every output the shell knows about. Bars are drawn on all connected outputs regardless.";
       };
       terminal = lib.mkOption {

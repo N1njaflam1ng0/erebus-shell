@@ -28,7 +28,10 @@ Singleton {
   property string launcherMode: Config.defaultMode
   property bool calendarOpen: false
   property string calendarMonitorId: ""
+  property bool wifiOpen: false
+  property string wifiMonitorId: ""
   property bool overlayOpen: root.launcherOpen || root.trayMenuOpen || root.calendarOpen
+    || root.wifiOpen
   property QsMenuHandle activeMenu: null
   property bool trayMenuOpen: false
   property int menuDirection: Qt.LeftToRight
@@ -99,6 +102,26 @@ Singleton {
       closeCalendar()
     } else {
       openCalendar(id)
+    }
+  }
+
+  // The wifi dropdown behaves like the calendar -- floats over the windows,
+  // no exclusion zone -- except that it does want the keyboard once a password
+  // field is open. shell.qml handles that with OnDemand focus.
+  function openWifi(id = Config.primaryDisplay) {
+    root.wifiMonitorId = id
+    root.wifiOpen = true
+  }
+
+  function closeWifi() {
+    root.wifiOpen = false
+  }
+
+  function toggleWifi(id = Config.primaryDisplay) {
+    if (root.wifiOpen && root.wifiMonitorId === id) {
+      closeWifi()
+    } else {
+      openWifi(id)
     }
   }
 
