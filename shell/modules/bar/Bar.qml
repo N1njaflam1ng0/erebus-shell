@@ -116,7 +116,7 @@ Item {
           Clock { monitorId: root.monitorId }
           Separator {}
           AlertsIndicator { monitorId: root.monitorId }
-          KeyboardButton { monitorId: root.monitorId }
+          SystemButton { monitorId: root.monitorId }
           AudioButton { monitorId: root.monitorId }
           TrayButton { monitorId: root.monitorId }
           Separator {}

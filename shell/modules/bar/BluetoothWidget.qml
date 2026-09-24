@@ -1,42 +1,22 @@
-// Bluetooth, via Quickshell.Bluetooth. Hidden when the host has no adapter.
+// Bluetooth, via services/BluetoothData.qml. Hidden when the host has no adapter.
+//
+// The lazily-populated-ObjectModel workaround this used to carry now lives in
+// BluetoothData, so the bar and the system panel share one set of trackers.
 
 import QtQuick
 import QtQuick.Layouts
-import QtQml.Models
-import Quickshell.Bluetooth
+import qs.services
 import qs.config
 
 Rectangle {
   id: root
 
-  readonly property var adapter: Bluetooth.defaultAdapter
-  readonly property bool hasAdapter: adapter !== null
-  readonly property bool enabled: adapter?.enabled ?? false
-  // Bluetooth.devices is lazily populated like Networking.devices; the tracker
-  // below forces it and re-triggers this binding. See services/NetworkData.qml.
-  property int deviceGeneration: 0
-  readonly property var connectedDevices: {
-    root.deviceGeneration;
-    return (Bluetooth.devices?.values ?? []).filter(d => d.connected);
-  }
-
-  visible: hasAdapter
+  visible: BluetoothData.hasAdapter
   // Sized off the layout, not childrenRect: childrenRect.width depends on this
-  // item.s own width, which is a binding loop (Qt warns at every startup).
-  implicitWidth: hasAdapter ? layout.implicitWidth : 0
+  // item's own width, which is a binding loop (Qt warns at every startup).
+  implicitWidth: BluetoothData.hasAdapter ? layout.implicitWidth : 0
   implicitHeight: parent.height
   color: "transparent"
-
-  Instantiator {
-    model: Bluetooth.devices
-    delegate: QtObject {
-      required property var modelData
-      readonly property bool conn: modelData?.connected ?? false
-      onConnChanged: root.deviceGeneration++
-      Component.onCompleted: root.deviceGeneration++
-      Component.onDestruction: root.deviceGeneration++
-    }
-  }
 
   RowLayout {
     id: layout
@@ -44,18 +24,20 @@ Rectangle {
     spacing: Style.spacing.p0
 
     Text {
-      text: root.enabled ? (root.connectedDevices.length > 0 ? "" : "") : ""
+      text: BluetoothData.enabled
+        ? (BluetoothData.connectedDevices.length > 0 ? "" : "")
+        : ""
       font.family: Style.font.symbols
       font.pointSize: Style.font.small
       color: {
-        if (!root.enabled) return Style.colors.brightBlack;
-        return root.connectedDevices.length > 0 ? Style.colors.brightBlue : Style.colors.white;
+        if (!BluetoothData.enabled) return Style.colors.brightBlack;
+        return BluetoothData.connectedDevices.length > 0 ? Style.colors.brightBlue : Style.colors.white;
       }
       Layout.alignment: Qt.AlignVCenter
     }
     Text {
-      visible: root.connectedDevices.length > 1
-      text: root.connectedDevices.length
+      visible: BluetoothData.connectedDevices.length > 1
+      text: BluetoothData.connectedDevices.length
       font.family: Style.font.main
       font.pointSize: Style.font.tiny
       color: Style.colors.white

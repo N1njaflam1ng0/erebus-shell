@@ -24,8 +24,10 @@ Singleton {
   property string calendarMonitorId: ""
   property bool wifiOpen: false
   property string wifiMonitorId: ""
+  property bool sysOpen: false
+  property string sysMonitorId: ""
   property bool overlayOpen: root.launcherOpen || root.trayMenuOpen || root.calendarOpen
-    || root.wifiOpen
+    || root.wifiOpen || root.sysOpen
   property QsMenuHandle activeMenu: null
   property bool trayMenuOpen: false
   property int menuDirection: Qt.LeftToRight
@@ -84,6 +86,7 @@ Singleton {
   // The calendar is a plain dropdown: unlike the launcher it takes no keyboard
   // focus and doesn't bump the exclusion zone, it just floats over the windows.
   function openCalendar(id = Config.primaryDisplay) {
+    root.closeSys()
     root.calendarMonitorId = id
     root.calendarOpen = true
   }
@@ -104,6 +107,7 @@ Singleton {
   // no exclusion zone -- except that it does want the keyboard once a password
   // field is open. shell.qml handles that with OnDemand focus.
   function openWifi(id = Config.primaryDisplay) {
+    root.closeSys()
     root.wifiMonitorId = id
     root.wifiOpen = true
   }
@@ -117,6 +121,28 @@ Singleton {
       closeWifi()
     } else {
       openWifi(id)
+    }
+  }
+
+  // The system panel drops out of the same top-right corner as the calendar and
+  // the wifi dropdown, so the three close each other rather than stacking. Like
+  // the calendar it never takes the keyboard -- nothing in it is typed into.
+  function openSys(id = Config.primaryDisplay) {
+    root.closeWifi()
+    root.closeCalendar()
+    root.sysMonitorId = id
+    root.sysOpen = true
+  }
+
+  function closeSys() {
+    root.sysOpen = false
+  }
+
+  function toggleSys(id = Config.primaryDisplay) {
+    if (root.sysOpen && root.sysMonitorId === id) {
+      closeSys()
+    } else {
+      openSys(id)
     }
   }
 

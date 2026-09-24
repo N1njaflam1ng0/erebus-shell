@@ -43,6 +43,19 @@ Singleton {
   readonly property string memoryUsedGb: (memoryUsed / (1024 * 1024)).toFixed(1)
   readonly property string memoryTotalGb: (memoryTotal / (1024 * 1024)).toFixed(1)
 
+  // Seconds since boot, off the same timer as everything else. Rendered in the
+  // system panel's header.
+  property real uptimeSeconds: 0
+  readonly property string uptimeString: {
+    const total = Math.floor(root.uptimeSeconds);
+    const days = Math.floor(total / 86400);
+    const hours = Math.floor((total % 86400) / 3600);
+    const minutes = Math.floor((total % 3600) / 60);
+    if (days > 0) return `up ${days}d ${hours}h`;
+    if (hours > 0) return `up ${hours}h ${minutes}m`;
+    return `up ${minutes}m`;
+  }
+
   readonly property int historyLength: 60
   property list<real> cpuUsageHistory: []
   property list<real> memoryUsageHistory: []
@@ -88,6 +101,10 @@ Singleton {
       // Reload files
       fileMeminfo.reload()
       fileStat.reload()
+      fileUptime.reload()
+
+      // "510.24 6688.87" -- seconds up, then seconds idle summed over all cores.
+      root.uptimeSeconds = Number(fileUptime.text().split(/\s+/)[0] ?? 0)
 
       // Parse memory and swap usage
       const textMeminfo = fileMeminfo.text()
@@ -120,6 +137,7 @@ Singleton {
 
   FileView { id: fileMeminfo; path: "/proc/meminfo" }
   FileView { id: fileStat; path: "/proc/stat" }
+  FileView { id: fileUptime; path: "/proc/uptime" }
 
   Process {
     id: topProc

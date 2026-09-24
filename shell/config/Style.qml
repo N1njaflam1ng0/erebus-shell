@@ -61,6 +61,17 @@ Singleton {
   }
   readonly property Wifi wifi: Wifi { }
 
+  component Sysmon: QtObject {
+    readonly property int width: 380 * Config.scale
+    // Tall: four stacked sections plus the process list, which is the only one
+    // that takes the leftover height. Shrink this and the processes go first.
+    readonly property int height: 620 * Config.scale
+    readonly property int rowHeight: 26 * Config.scale
+    readonly property int sparkWidth: 90 * Config.scale
+    readonly property int sparkHeight: 14 * Config.scale
+  }
+  readonly property Sysmon system: Sysmon { }
+
   component Font: QtObject {
     readonly property string main: "CaskaydiaCove Nerd Font"
     readonly property string symbols: "Symbols Nerd Font"

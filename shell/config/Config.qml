@@ -40,21 +40,6 @@ Singleton {
 
   readonly property Notifications notifications: Notifications { }
 
-  property var keyboardLayouts: [
-    {
-      code: "dk",
-      label: "Danish",
-      color: Style.colors.accent,
-      default: true
-    },
-    {
-      code: "en",
-      label: "English (US)",
-      color: Style.colors.fg,
-      default: false
-    }
-  ]
-
   // Menu modes, defaults to apps
   readonly property var launcherMenus: [
     {

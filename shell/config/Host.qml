@@ -39,6 +39,7 @@ Singleton {
   readonly property string sysmon: "btop"
   readonly property string cava: "cava"
   readonly property string hyprctl: "hyprctl"
+  readonly property string hcitool: "hcitool"
 
   // PipeWire sink node names, for picking the bar's output icon.
   readonly property string sinkHeadphones: "alsa_output.usb-Sony_INZONE_H9___INZONE_H7-00.HiFi__Headphones__sink"

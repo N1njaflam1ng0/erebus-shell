@@ -50,6 +50,7 @@
         readonly property string sysmon: "${pkgs.btop}/bin/btop"
         readonly property string cava: "${pkgs.cava}/bin/cava"
         readonly property string hyprctl: "${hyprctl}"
+        readonly property string hcitool: "${pkgs.bluez}/bin/hcitool"
 
         readonly property string sinkHeadphones: "alsa_output.usb-Sony_INZONE_H9___INZONE_H7-00.HiFi__Headphones__sink"
         readonly property string sinkHeadset: "alsa_output.usb-Sony_INZONE_H9___INZONE_H7-00.HiFi__Headset__sink"

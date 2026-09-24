@@ -18,6 +18,7 @@ import qs.modules.bar
 import qs.modules.launcher
 import qs.modules.calendar
 import qs.modules.network
+import qs.modules.system
 import qs.modules.tray
 import QtQuick
 import Quickshell.Wayland
@@ -36,6 +37,12 @@ ShellRoot {
     name: "toggleWifi"
     description: "Toggles the wifi panel"
     onPressed: GlobalState.toggleWifi(Hyprland.focusedMonitor?.name ?? Config.primaryDisplay)
+  }
+
+  GlobalShortcut { // qmllint disable unresolved-type
+    name: "toggleSystem"
+    description: "Toggles the system panel"
+    onPressed: GlobalState.toggleSys(Hyprland.focusedMonitor?.name ?? Config.primaryDisplay)
   }
 
   Variants {
@@ -84,6 +91,7 @@ ShellRoot {
           active: (GlobalState.launcherOpen && GlobalState.launcherMonitorId === scope.monitorId)
             || (GlobalState.calendarOpen && GlobalState.calendarMonitorId === scope.monitorId)
             || (GlobalState.wifiOpen && GlobalState.wifiMonitorId === scope.monitorId)
+            || (GlobalState.sysOpen && GlobalState.sysMonitorId === scope.monitorId)
           // Deliberately empty, for every overlay. Hyprland fires `cleared`
           // immediately after the grab activates, so closing from here shuts
           // the panel the moment it opens. Click-outside is handled instead by
@@ -168,6 +176,7 @@ ShellRoot {
               if (GlobalState.trayMenuOpen) { GlobalState.closeTrayMenu() }
               if (GlobalState.calendarOpen) { GlobalState.closeCalendar() }
               if (GlobalState.wifiOpen) { GlobalState.closeWifi() }
+              if (GlobalState.sysOpen) { GlobalState.closeSys() }
             }
           }
           states: [
@@ -203,6 +212,10 @@ ShellRoot {
         }
 
         WifiPanel {
+          monitorId: scope.monitorId
+        }
+
+        SysPanel {
           monitorId: scope.monitorId
         }
 
