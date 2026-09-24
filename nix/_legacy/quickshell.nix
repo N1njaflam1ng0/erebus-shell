@@ -133,10 +133,11 @@
     };
 
     config = {
+      # brightnessctl is in environment.systemPackages (core-packages.nix), and
+      # Host.qml points at its store path regardless.
       home.packages = [
         pkgs.quickshell
         pkgs.cava
-        pkgs.brightnessctl
         launcher
       ];
 

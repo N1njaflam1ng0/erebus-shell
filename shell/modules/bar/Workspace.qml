@@ -10,7 +10,6 @@
 // ┆└──────────────────────────────────────────────────────────┘┆
 
 pragma ComponentBehavior: Bound
-// import Quickshell
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Effects
@@ -19,11 +18,9 @@ import QtQuick.Controls
 import Quickshell.Widgets
 import Quickshell.Hyprland
 import qs.services
-// import qs.utils
 import qs.config
 import qs.components
 import qs.utils
-// import qs.widgets
 
 Button {
   id: root
@@ -202,28 +199,6 @@ Button {
               source: IconImage {
                 source: appIcon.modelData.icon
                 implicitSize: root.iconSize
-
-                // opacity: 0
-                // scale: 0.8
-                //
-                // Component.onCompleted: {
-                //   opacity = 1
-                //   scale = 1
-                // }
-                //
-                // Behavior on opacity {
-                //   NumberAnimation {
-                //     duration: 300
-                //     easing.type: Easing.OutCubic
-                //   }
-                // }
-                //
-                // Behavior on scale {
-                //   NumberAnimation {
-                //     duration: 300
-                //     easing.type: Easing.OutCubic
-                //   }
-                // }
               }
             }
 

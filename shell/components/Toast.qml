@@ -14,14 +14,8 @@ import QtQuick.Controls
 import Quickshell.Widgets
 import Quickshell
 import QtQuick
-// import Quickshell.Wayland
-// import Quickshell.Hyprland
-// import Quickshell.Wayland
-// import QtQuick.Shapes
-// import QtQuick.VectorImage
 import QtQuick.Layouts
 
-// import qs.utils
 import qs.services
 import qs.config
 import qs
@@ -29,7 +23,6 @@ import qs
 Item {
   id: root
   required property string monitorId
-  // anchors.fill: parent
 
   Behavior on anchors.topMargin {
     NumberAnimation {

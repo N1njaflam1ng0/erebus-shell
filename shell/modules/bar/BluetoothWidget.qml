@@ -13,7 +13,7 @@ Rectangle {
   readonly property bool hasAdapter: adapter !== null
   readonly property bool enabled: adapter?.enabled ?? false
   // Bluetooth.devices is lazily populated like Networking.devices; the tracker
-  // below forces it and re-triggers this binding. See NetworkWidget.qml.
+  // below forces it and re-triggers this binding. See services/NetworkData.qml.
   property int deviceGeneration: 0
   readonly property var connectedDevices: {
     root.deviceGeneration;
@@ -21,7 +21,9 @@ Rectangle {
   }
 
   visible: hasAdapter
-  implicitWidth: hasAdapter ? childrenRect.width : 0
+  // Sized off the layout, not childrenRect: childrenRect.width depends on this
+  // item.s own width, which is a binding loop (Qt warns at every startup).
+  implicitWidth: hasAdapter ? layout.implicitWidth : 0
   implicitHeight: parent.height
   color: "transparent"
 
@@ -37,6 +39,7 @@ Rectangle {
   }
 
   RowLayout {
+    id: layout
     anchors.verticalCenter: parent.verticalCenter
     spacing: Style.spacing.p0
 

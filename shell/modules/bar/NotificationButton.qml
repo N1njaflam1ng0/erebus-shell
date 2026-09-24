@@ -9,20 +9,13 @@
 // ├┤ License : GNU General Public License v3      ├┤
 // ┆└──────────────────────────────────────────────┘┆
 
-// import QtQuick.Controls
 import qs.components
 import qs.config
 import qs.services
 import qs
-// import qs.utils
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-// import QtQuick.Shapes
-// import Quickshell
-// import Quickshell.Hyprland
-// import Quickshell.Wayland
-// import Quickshell.Widgets
 
 Button {
   id: root
@@ -40,7 +33,6 @@ Button {
     id: mouseArea
     acceptedButtons: Qt.LeftButton | Qt.RightButton
     cursorShape: Qt.PointingHandCursor
-    // anchors.fill: parent
     hoverEnabled: true
 
     x: -Style.spacing.p1
@@ -50,7 +42,6 @@ Button {
 
     onClicked: (mouse) => {
       if (mouse.button === Qt.RightButton) {
-        // GlobalState.toggleLauncher({id: root.monitorId })
       } else if (mouse.button === Qt.LeftButton) {
         GlobalState.toggleLauncher({
           id: root.monitorId, mode: "notifications",
@@ -85,7 +76,6 @@ Button {
       name: "openActiveHovered"
       when: root.menuOpen && mouseArea.containsMouse && root.active
       PropertyChanges {
-        // quad.rotation: 180
         quad.gradientEnabled: true
 
         quad.bottomLeft:  Qt.point(0.5, 1)
@@ -107,8 +97,6 @@ Button {
       name: "active"
       when: root.active && !mouseArea.containsMouse && !root.menuOpen
       PropertyChanges {
-        // quad.rotation: 180
-        // quad.gradientEnabled: true
       }
       PropertyChanges {
         rect.borderColor: Style.colors.gray5
@@ -172,7 +160,6 @@ Button {
       gradientStart: Style.colors.yellow
       gradientEnd: Style.colors.cyan
       gradientRotation: 90
-      // quad.gradientEnabled: true
       Behavior on bottomLeft  { PropertyAnimation { duration: Style.durations.small; easing.type: Easing.InOutQuad } }
       Behavior on bottomRight { PropertyAnimation { duration: Style.durations.small; easing.type: Easing.InOutQuad } }
       Behavior on topLeft  { PropertyAnimation { duration: Style.durations.small; easing.type: Easing.InOutQuad } }
@@ -199,29 +186,9 @@ Button {
             duration: Style.durations.slow
           }
         }
-        // anchors.bottom: parent.bottom
-        // anchors.bottomMargin: 4
         color: Style.colors.brightBlack
-        // anchors.centerIn: parent
-        // anchors.topMargin: 4
         anchors.horizontalCenter: parent.horizontalCenter
       }
     }
-    // Shape {
-    //   id: shape
-    //   anchors.centerIn: parent
-    //   width: Style.bar.iconSize
-    //   height: Style.bar.iconSize
-    //   ShapePath {
-    //     strokeWidth: 1
-    //     id: path
-    //     strokeColor: Style.colors.gray3
-    //     fillColor: Style.colors.black
-    //     PathSvg {
-    //       id: svg
-    //       path: "M 10 1.7 L 18.3 16.3 L 1.7 16.3 Z"
-    //     }
-    //   }
-    // }
   }
 }

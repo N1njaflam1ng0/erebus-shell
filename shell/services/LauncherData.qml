@@ -20,9 +20,6 @@ import qs.services
 import qs.config
 import qs.utils
 
-// import Quickshell.Io
-// import QtQuick
-// import qs.utils
 
 Singleton {
   id: root

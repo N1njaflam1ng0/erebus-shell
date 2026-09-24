@@ -15,7 +15,6 @@ import qs
 import QtQuick.Layouts
 import QtQuick.Controls
 import QtQuick
-// import qs.utils
 import qs.config
 import qs.services
 import qs.components
@@ -38,8 +37,6 @@ Item {
   property bool isNotification: false
   property bool isCurrentItem: ListView.isCurrentItem
   implicitHeight: parent?.height ?? 0
-  // anchors.top: parent?.top
-  // anchors.bottom: parent?.bottom
   // height: parent?.height ?? 0
   implicitWidth: {
     const view = ListView.view
@@ -109,7 +106,6 @@ Item {
   property string imageSource: ""
   property int iconSize: 40
 
-  // clip: true
 
   MouseArea {
     id: mouseArea
@@ -321,14 +317,12 @@ Item {
             Text {
               color: Style.colors.brightYellow
               id: favorite
-              // anchors.top: parent.top
               anchors.top: parent.top
               anchors.left: parent.left
               anchors.leftMargin: Style.spacing.p1
               anchors.topMargin: 2
 
 
-              // anchors.horizontalCenter: parent.horizontalCenter
               opacity: root.favorite ? 1 : 0
               rotation: -45
               text: "󰓒"

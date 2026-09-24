@@ -10,15 +10,12 @@
 // ┆└─────────────────────────────────────────────┘┆
 
 pragma ComponentBehavior: Bound
-// import qs.config
 import qs.components
 import qs.modules.tray
 import QtQuick
-// import QtQuick.Layouts
 import Quickshell.Services.SystemTray
 import qs
 
-// import QtQuick.Controls
 
 ExpandingButton {
   id: root

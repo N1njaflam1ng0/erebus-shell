@@ -107,10 +107,11 @@
       esac
     '';
   in {
+    # No pkgs.jq here: the script above calls it by store path, and jq is already
+    # in environment.systemPackages (core-packages.nix) for interactive use.
     home.packages = [
       wallpaper
       inputs.gslapper.packages.${pkgs.stdenv.hostPlatform.system}.gslapper
-      pkgs.jq
     ];
   };
 }

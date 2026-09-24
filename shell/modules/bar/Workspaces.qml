@@ -10,7 +10,6 @@
 // ┆└──────────────────────────────────────────────────────────────┘┆
 
 import QtQuick
-// import Quickshell.Widgets
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Wayland
@@ -18,7 +17,6 @@ import QtQuick.Layouts
 import qs.services
 import qs.config
 import qs.components
-import qs.utils
 pragma ComponentBehavior: Bound
 
 BorderRect {

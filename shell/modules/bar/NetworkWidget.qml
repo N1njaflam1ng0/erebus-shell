@@ -28,8 +28,6 @@ Rectangle {
   implicitHeight: parent.height
   color: "transparent"
 
-  readonly property var wifiRamp: ["󰤯", "󰤟", "󰤢", "󰤥", "󰤨"]
-
   MouseArea {
     id: mouseArea
     anchors.fill: parent
@@ -47,7 +45,7 @@ Rectangle {
       text: {
         if (NetworkData.activeDevice === null) return "󰤭";   // disconnected
         if (!NetworkData.isWifi) return "󰈁";                  // wired
-        return root.wifiRamp[Math.min(4, Math.floor(NetworkData.signal * 5))];
+        return NetworkData.signalIcon(NetworkData.strength);
       }
       font.family: Style.font.symbols
       font.pointSize: Style.font.small

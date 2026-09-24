@@ -13,7 +13,6 @@
 
 pragma Singleton
 import Quickshell
-import qs.config
 import "./fuzzysort.js" as FuzzySort
 
 /**

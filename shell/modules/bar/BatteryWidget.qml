@@ -16,7 +16,9 @@ Rectangle {
   readonly property bool full: (dev?.state ?? UPowerDeviceState.Unknown) === UPowerDeviceState.FullyCharged
 
   visible: present
-  implicitWidth: present ? childrenRect.width : 0
+  // Sized off the layout, not childrenRect: childrenRect.width depends on this
+  // item.s own width, which is a binding loop (Qt warns at every startup).
+  implicitWidth: present ? layout.implicitWidth : 0
   implicitHeight: parent.height
   color: "transparent"
 
@@ -24,6 +26,7 @@ Rectangle {
   readonly property var ramp: ["", "", "", "", ""]
 
   RowLayout {
+    id: layout
     anchors.verticalCenter: parent.verticalCenter
     spacing: Style.spacing.p0
 

@@ -9,17 +9,14 @@
 // ├┤ License : GNU General Public License v3              ├┤
 // ┆└──────────────────────────────────────────────────────┘┆
 
-// import Quickshell
 import Quickshell.Io
 pragma Singleton
 pragma ComponentBehavior: Bound
 
-// import Quickshell.Io
 import Quickshell
 import Quickshell.Hyprland
 import QtQuick
 import qs.config
-// import qs.utils
 
 Singleton {
   id: root

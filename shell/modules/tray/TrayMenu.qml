@@ -38,7 +38,6 @@ Item {
   // Correct type is QsWindow, but QML does not like that
   signal menuOpened(qsWindow: var)
 
-  // color: Functions.transparentize("#000", 0.7)
   property real padding: Style.spacing.p1
 
   anchors.fill: parent

@@ -14,7 +14,7 @@ Rectangle {
   // Prefer whatever is actually playing; otherwise fall back to the first player
   // so a paused track still shows.
   // Mpris.players is lazily populated like Networking.devices; the tracker below
-  // forces it and re-triggers this binding. See NetworkWidget.qml.
+  // forces it and re-triggers this binding. See services/NetworkData.qml.
   property int playerGeneration: 0
   readonly property var players: {
     root.playerGeneration;

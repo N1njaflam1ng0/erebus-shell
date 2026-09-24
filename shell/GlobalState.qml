@@ -14,17 +14,11 @@ pragma ComponentBehavior: Bound
 import Quickshell
 import QtQuick
 import qs.config
-// import qs.services
-// import Quickshell.Wayland
-// import qs.utils
 
-// Tray monitor id not needed after all, check TrayMenu state, but I might as
-// well track it now that I've configured it here
 Singleton {
   id: root
   property bool launcherOpen: false
   property string launcherMonitorId: ""
-  property string trayMonitorId: ""
   property string launcherMode: Config.defaultMode
   property bool calendarOpen: false
   property string calendarMonitorId: ""
@@ -52,14 +46,15 @@ Singleton {
     }
   }
 
-  function openTrayMenu(menu, id = Config.primaryDisplay) {
+  // The menu positions itself off the tray item that opened it, so unlike the
+  // other overlays this one does not need to be told which monitor.
+  function openTrayMenu(menu) {
     if (!menu) {
       console.error("No provided menu, cant open menu")
       return
     }
     root.activeMenu = menu
     trayMenuOpen = true
-    trayMonitorId = id
   }
 
   function closeTrayMenu() {

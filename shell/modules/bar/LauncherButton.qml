@@ -10,7 +10,6 @@
 // ┆└──────────────────────────────────────────────────────┘┆
 
 pragma ComponentBehavior: Bound
-// import qs.services
 import qs.config
 import qs.utils
 import qs.components
@@ -18,10 +17,6 @@ import qs
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-// import Quickshell
-// import Quickshell.Hyprland
-// import Quickshell.Wayland
-// import Quickshell.Widgets
 
 Item {
   required property string monitorId
@@ -83,17 +78,11 @@ Item {
         acceptedButtons: Qt.LeftButton | Qt.RightButton
         z: 99
         cursorShape: Qt.PointingHandCursor
-        // anchors.fill: parent
         hoverEnabled: true
         x: -Style.spacing.p1
         y: -Style.spacing.p1
         implicitWidth: parent.width + (Style.spacing.p1 * 2) + Style.bar.borderWidth
         implicitHeight: parent.height + (Style.spacing.p1 * 2)  + Style.bar.borderWidth
-
-        // Rectangle {
-        //   anchors.fill: parent
-        //   color: Functions.transparentize("red", 0.7)
-        // }
 
         onClicked: (mouse) => {
           if (mouse.button === Qt.RightButton) {
@@ -114,7 +103,6 @@ Item {
 
           implicitWidth: button.visualActive ? parent.height - Style.spacing.p1 * 2 : Style.spacing.p1
           implicitHeight: parent.height - Style.spacing.p1 * 2
-          // implicitWidth: parent.height - Style.spacing.p1 * 2
           // implicitHeight: parent.height - Style.spacing.p1 * 2
 
           Behavior on rotation {

@@ -10,7 +10,6 @@
 // ┆└─────────────────────────────────────────────┘┆
 
 pragma Singleton
-// pragma ComponentBehavior: Bound
 import Quickshell
 import QtQuick
 import qs.config
@@ -33,7 +32,6 @@ Singleton {
 
   component Bar: QtObject {
     readonly property int height: 40 * Config.scale
-    readonly property bool transparent: false
     readonly property int radius: 0 * Config.scale
     readonly property real borderWidth: 1 * Config.scale
     readonly property int sliderWidth: 120 * Config.scale
@@ -67,7 +65,6 @@ Singleton {
     readonly property string main: "CaskaydiaCove Nerd Font"
     readonly property string symbols: "Symbols Nerd Font"
     readonly property string light: "CaskaydiaCove Nerd Font Light"
-    readonly property string extraLight: "CaskaydiaCove Nerd Font ExtraLight"
     readonly property int size0: 10 * Config.scale
     readonly property int size1: 12 * Config.scale
     readonly property int size2: 14 * Config.scale
@@ -94,7 +91,6 @@ Singleton {
 
   component Durations: QtObject {
     readonly property int slow: 800
-    readonly property int large: 500
     readonly property int normal: 400
     readonly property int medium: 300
     readonly property int small: 200

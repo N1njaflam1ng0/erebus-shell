@@ -47,9 +47,8 @@ Singleton {
   readonly property string brightOrange: "#FF8700"
 
   // Semantic aliases, for the few places that want intent rather than a slot.
-  readonly property string bg: root.black
+  // The base16 slots above stay complete even where nothing reads them yet --
+  // a palette with holes in it is worse than an unused name.
   readonly property string fg: root.white
   readonly property string accent: root.magenta
-  readonly property string border: root.gray3
-  readonly property string error: root.brightRed
 }

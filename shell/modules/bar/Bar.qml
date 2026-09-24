@@ -39,8 +39,10 @@ Item {
     right: parent.right
   }
 
+  // One layout for every output. There used to be a Loader here picking between
+  // bar variants, but it only ever had this one, and its wrapper Rectangles were
+  // transparent and filled their parent.
   BorderRect {
-    id: barContent
     color: Style.colors.black
     borderColor: Style.colors.gray3
     bottomBorder: 1
@@ -50,96 +52,77 @@ Item {
       top: parent.top
       bottom: parent.bottom
     }
-    Rectangle {
-      anchors.fill: parent
-      color: "transparent"
 
-      Loader {
-        id: barLoader
-        anchors.fill: parent
-        sourceComponent: primaryBar
-      }}
-    }
-    Component {
-      id: primaryBar
+    RowLayout {
+      anchors.fill: parent
+      spacing: 0
+
+      Rectangle {
+        Layout.fillWidth: true
+        Layout.fillHeight: true
+        color: "transparent"
+        RowLayout {
+          spacing: Style.spacing.p1
+          anchors.left: parent.left
+          anchors.fill: parent
+          LauncherButton {
+            monitorId: root.monitorId
+            onDecrementCurrentIndex: root.decrementCurrentIndex()
+            onIncrementCurrentIndex: root.incrementCurrentIndex()
+            onOpenDrawer: root.openDrawer()
+            onCloseDrawer: root.closeDrawer()
+            onDrawerNext: root.drawerNext()
+            onDrawerActivate: root.drawerActivate()
+            onDrawerPrev: root.drawerPrev()
+            onAccepted: root.accepted()
+          }
+          Separator {}
+          Loader {
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+            active: LauncherData.appsData.length > 0
+            sourceComponent: Context { }
+          }
+
+          MediaWidget { }
+        }
+      }
+
       Rectangle {
         color: "transparent"
-        anchors.fill: parent
-
+        Layout.fillHeight: true
+        Layout.fillWidth: true
         RowLayout {
-          anchors.fill: parent
-          spacing: 0
-          Rectangle {
-            id: leftSection
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            color: "transparent"
-            RowLayout {
-              spacing: Style.spacing.p1
-              anchors.left: parent.left
-              anchors.fill: parent
-              LauncherButton {
-                monitorId: root.monitorId
-                onDecrementCurrentIndex: root.decrementCurrentIndex()
-                onIncrementCurrentIndex: root.incrementCurrentIndex()
-                onOpenDrawer: root.openDrawer()
-                onCloseDrawer: root.closeDrawer()
-                onDrawerNext: root.drawerNext()
-                onDrawerActivate: root.drawerActivate()
-                onDrawerPrev: root.drawerPrev()
-                onAccepted: root.accepted()
-              }
-              Separator {}
-              Loader {
-                Layout.fillHeight: true
-                Layout.fillWidth: true
-                active: LauncherData.appsData.length > 0
-                sourceComponent: Context { }
-              }
+          spacing: Style.spacing.p1
+          anchors.centerIn: parent
+          ShiftButton { direction: -1; monitorId: root.monitorId }
+          Workspaces { monitorId: root.monitorId }
+          ShiftButton { direction: 1; monitorId: root.monitorId }
+        }
+      }
 
-              MediaWidget { }
-            }
-          }
-          Rectangle {
-            id: centerSection
-            color: "transparent"
-            Layout.fillHeight: true
-            Layout.fillWidth: true
-            // Layout.alignment: Qt.AlignHCenter
-            RowLayout {
-              spacing: Style.spacing.p1
-              anchors.centerIn: parent
-              ShiftButton { direction: -1; monitorId: root.monitorId }
-              Workspaces { monitorId: root.monitorId }
-              ShiftButton { direction: 1; monitorId: root.monitorId }
-            }
-          }
-          Rectangle {
-            id: rightSection
-            Layout.fillHeight: true
-            Layout.fillWidth: true
-            color: "transparent"
-            RowLayout {
-              spacing: Style.spacing.p1
-              anchors.right: parent.right
-              // anchors.rightMargin: Style.spacing.p1
-              // anchors.fill: parent
-              SysmonWidget { }
-              NetworkWidget { monitorId: root.monitorId }
-              BluetoothWidget { }
-              BatteryWidget { }
-              Separator {}
-              Clock { monitorId: root.monitorId }
-              Separator {}
-              AlertsIndicator { monitorId: root.monitorId }
-              KeyboardButton { monitorId: root.monitorId }
-              AudioButton { monitorId: root.monitorId }
-              TrayButton { monitorId: root.monitorId }
-              Separator {}
-              NotificationButton { monitorId: root.monitorId }
-            }
-          }
+      Rectangle {
+        Layout.fillHeight: true
+        Layout.fillWidth: true
+        color: "transparent"
+        RowLayout {
+          spacing: Style.spacing.p1
+          anchors.right: parent.right
+          SysmonWidget { }
+          NetworkWidget { monitorId: root.monitorId }
+          BluetoothWidget { }
+          BatteryWidget { }
+          Separator {}
+          Clock { monitorId: root.monitorId }
+          Separator {}
+          AlertsIndicator { monitorId: root.monitorId }
+          KeyboardButton { monitorId: root.monitorId }
+          AudioButton { monitorId: root.monitorId }
+          TrayButton { monitorId: root.monitorId }
+          Separator {}
+          NotificationButton { monitorId: root.monitorId }
         }
       }
     }
   }
+}

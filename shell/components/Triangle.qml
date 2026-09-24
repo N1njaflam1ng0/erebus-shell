@@ -10,7 +10,6 @@
 // ┆└──────────────────────────────────────────────────────┘┆
 
 pragma ComponentBehavior: Bound
-// import QtQuick.Shapes
 import QtQuick
 import qs.config
 

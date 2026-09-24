@@ -29,6 +29,15 @@ import qs.services
 import qs
 
 ShellRoot {
+  // Registered here, outside the Variants, so it exists once rather than once
+  // per monitor. The panel itself is per-monitor; the shortcut only has to pick
+  // which one, which is what GlobalState.toggleWifi takes.
+  GlobalShortcut { // qmllint disable unresolved-type
+    name: "toggleWifi"
+    description: "Toggles the wifi panel"
+    onPressed: GlobalState.toggleWifi(Hyprland.focusedMonitor?.name ?? Config.primaryDisplay)
+  }
+
   Variants {
     model: Quickshell.screens
     delegate: Scope {
@@ -190,17 +199,14 @@ ShellRoot {
         }
 
         CalendarPanel {
-          id: calendarPanel
           monitorId: scope.monitorId
         }
 
         WifiPanel {
-          id: wifiPanel
           monitorId: scope.monitorId
         }
 
         Osd {
-          id: osd
           monitorId: scope.monitorId
         }
 

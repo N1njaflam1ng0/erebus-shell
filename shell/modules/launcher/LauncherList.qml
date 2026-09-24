@@ -13,13 +13,10 @@ pragma ComponentBehavior: Bound
 import QtQuick.Shapes
 import Quickshell
 import QtQuick.Layouts
-// import Quickshell.Widgets
 import QtQuick.Controls
 import QtQuick
 import qs.config
 import qs.components
-// import qs.services
-// import qs.utils
 import qs
 import QtQuick.Effects
 import qs.utils
@@ -265,9 +262,7 @@ Item {
       ListView {
         id: list
         visible: count > 0
-        // clip: true
         anchors.fill: parent
-        // currentIndex: GlobalState.menuIndex
 
         model: ScriptModel {
           id: model
@@ -322,12 +317,10 @@ Item {
             GradientStop { position: 1; color: Style.colors.magenta }
             GradientStop { position: 0; color: Style.colors.blue }
           }
-          // anchors.fill: parent
         }
         ScrollBar.horizontal: ScrollBar {
           id: scroll
           padding: 0
-          // implicitWidth: Style.spacing.p1
           contentItem: BorderRect {
             anchors.left: parent.left
             anchors.right: parent.right
@@ -377,10 +370,6 @@ Item {
             easing.bezierCurve: Style.animationCurves
             .expressiveFastSpatial
           }
-          // NumberAnimation {
-          //   property: "opacity"
-          //   to: 1.0
-          // }
         }
 
         remove: Transition {
@@ -406,7 +395,6 @@ Item {
             property: "opacity"
             to: 1.0
           }
-          // NumberAnimation { property: "scale"; to: 1.0 }
           NumberAnimation {
             properties: "x"
             duration: Style.animationCurves

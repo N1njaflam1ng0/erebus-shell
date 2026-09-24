@@ -11,7 +11,10 @@
 //
 // Everything here talks to NetworkManager through Quickshell.Networking, so
 // there is no nmcli to shell out to and no helper binary. Network list state
-// comes from services/NetworkData.qml -- see its header for the lazy-model trap.
+// *and* the transient panel state (which row is prompting for a password, which
+// one last failed) both live in services/NetworkData.qml -- see its header for
+// the lazy-model trap and for why this panel owns none of it: shell.qml builds
+// one of these per monitor, so anything kept here would exist N times over.
 
 pragma ComponentBehavior: Bound
 
@@ -23,8 +26,6 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Io
-import Quickshell.Hyprland
 import Quickshell.Networking
 
 Item {
@@ -48,58 +49,23 @@ Item {
   // Only render while on-screen or mid-transition.
   visible: panel.y > -Style.wifi.height
 
-  // SSID whose password row is expanded, "" for none. Only ever one at a time:
-  // two open fields on screen invites typing the right password into the wrong
-  // network.
-  property string pskFor: ""
-  // Held out here rather than in the TextField so it survives the field being
-  // rebuilt under us; see NetworkData.frozen.
-  property string pskText: ""
-  // Last failure, shown against the row it belongs to.
-  property string errorFor: ""
-  property string errorText: ""
-
-  // Freezing the list is what actually prevents the rebuild; the hoisted text
-  // above is the backstop for the cases it can't cover, like the device
-  // disappearing.
-  onPskForChanged: NetworkData.frozen = root.pskFor !== ""
-
-  function promptFor(name: string): void {
-    root.pskFor = name
-    root.pskText = ""
-    root.errorFor = ""
-    root.errorText = ""
-  }
-
-  function dismiss(): void {
-    root.pskFor = ""
-    root.pskText = ""
-    root.errorFor = ""
-    root.errorText = ""
-  }
-
+  // Scanning follows GlobalState.wifiOpen inside NetworkData, so there is
+  // nothing to mirror from here. Closing just drops whatever was half typed.
+  // The toggleWifi shortcut is registered once, in shell.qml, rather than once
+  // per monitor from in here.
   onActiveChanged: {
-    // Only scan while someone is looking; NetworkData mirrors this onto the
-    // device's scannerEnabled.
-    NetworkData.scanning = root.active
     if (!root.active) {
-      root.dismiss()
+      NetworkData.dismiss()
     }
   }
 
-  GlobalShortcut { // qmllint disable unresolved-type
-    name: "toggleWifi"
-    description: "Toggles the wifi panel"
-    onPressed: {
-      if (Hyprland.focusedMonitor?.name === root.monitorId) {
-        GlobalState.toggleWifi(root.monitorId)
-      }
-    }
-  }
-
-  Process {
-    id: editor
-    command: ["nm-connection-editor"]
+  // Anything this panel deliberately doesn't do -- static addresses, VPNs,
+  // 802.1X -- lives in NetworkManager's own editor. Detached rather than a
+  // Process: `running = true` on an already-running Process is a silent no-op,
+  // so a second click did nothing at all.
+  function openEditor(): void {
+    Quickshell.execDetached(["nm-connection-editor"])
+    GlobalState.closeWifi()
   }
 
   component IconButton: Rectangle {
@@ -264,25 +230,17 @@ Item {
 
             readonly property bool secured: entry.modelData.security !== WifiSecurityType.Open
             readonly property bool enterprise: NetworkData.isEnterprise(entry.modelData)
-            readonly property bool prompting: root.pskFor === entry.modelData.name
-            readonly property bool failed: root.errorFor === entry.modelData.name
+            readonly property bool prompting: NetworkData.pskFor === entry.modelData.name
+            readonly property bool failed: NetworkData.errorFor === entry.modelData.name
 
             width: list.width
             implicitHeight: rows.implicitHeight
 
-            Connections {
-              target: entry.modelData
-              function onConnectionFailed(reason: int): void {
-                root.errorFor = entry.modelData.name
-                root.errorText = ConnectionFailReason.toString(reason)
-                // A missing or wrong secret is the one failure the user can do
-                // something about from here, so re-open the field for it --
-                // except on 802.1X, where a bare password is not the answer.
-                if (reason === ConnectionFailReason.NoSecrets && !entry.enterprise) {
-                  root.pskFor = entry.modelData.name
-                }
-              }
-            }
+            // The connectionFailed handler used to live here. It had to move to
+            // NetworkData's per-network tracker: a connect attempt republishes
+            // `networks`, which rebuilds every delegate, so a handler owned by
+            // the delegate was destroyed before the failure came back and the
+            // click looked like it did nothing.
 
             ColumnLayout {
               id: rows
@@ -309,7 +267,7 @@ Item {
                     if (mouse.button === Qt.RightButton) {
                       // Right-click only means anything on a saved network.
                       if (net.known) {
-                        if (root.pskFor === net.name) root.dismiss()
+                        if (NetworkData.pskFor === net.name) NetworkData.dismiss()
                         net.forget()
                       }
                       return
@@ -322,12 +280,11 @@ Item {
                     } else if (entry.enterprise) {
                       // Nothing useful this panel can ask for -- see
                       // NetworkData.isEnterprise.
-                      editor.running = true
-                      GlobalState.closeWifi()
+                      root.openEditor()
                     } else if (entry.prompting) {
-                      root.dismiss()
+                      NetworkData.dismiss()
                     } else {
-                      root.promptFor(net.name)
+                      NetworkData.promptFor(net.name)
                     }
                   }
                 }
@@ -339,7 +296,7 @@ Item {
                   spacing: Style.spacing.p1
 
                   Text {
-                    text: ["󰤯", "󰤟", "󰤢", "󰤥", "󰤨"][Math.min(4, Math.floor(entry.modelData.signalStrength * 5))]
+                    text: NetworkData.signalIcon(entry.modelData.signalStrength)
                     color: entry.modelData.connected ? Style.colors.accent : Style.colors.white
                     font.family: Style.font.symbols
                     font.pointSize: Style.font.small
@@ -385,7 +342,10 @@ Item {
                 Layout.leftMargin: Style.spacing.p3
                 Layout.rightMargin: Style.spacing.p1
                 Layout.bottomMargin: active ? Style.spacing.p0 : 0
-                active: entry.prompting
+                // `root.active` matters as well as `prompting`: pskFor is shared
+                // across monitors now, so without it the off-screen panel would
+                // build a second field for the same row and grab focus.
+                active: entry.prompting && root.active
 
                 sourceComponent: TextField {
                   id: psk
@@ -397,16 +357,16 @@ Item {
                   placeholderTextColor: entry.failed ? Style.colors.brightRed : Style.colors.gray6
                   font.family: Style.font.light
                   font.pointSize: Style.font.small
-                  placeholderText: entry.failed ? `  ${root.errorText}` : "  Password"
+                  placeholderText: entry.failed ? `  ${NetworkData.errorText}` : "  Password"
 
                   // The row was clicked to get here, so the field is what the
                   // user is after -- unlike the calendar's quick-add, which is
                   // incidental to a panel opened for a glance.
                   Component.onCompleted: {
-                    psk.text = root.pskText
+                    psk.text = NetworkData.pskText
                     psk.forceActiveFocus()
                   }
-                  onTextChanged: root.pskText = psk.text
+                  onTextChanged: NetworkData.pskText = psk.text
 
                   background: Rectangle {
                     color: "transparent"
@@ -423,10 +383,10 @@ Item {
                   onAccepted: {
                     if (psk.text === "") return
                     entry.modelData.connectWithPsk(psk.text)
-                    root.dismiss()
+                    NetworkData.dismiss()
                   }
 
-                  Keys.onEscapePressed: root.dismiss()
+                  Keys.onEscapePressed: NetworkData.dismiss()
                 }
               }
             }
@@ -475,13 +435,8 @@ Item {
 
         IconButton {
           glyph: "󰒓"
-          // Anything this panel deliberately doesn't do -- static addresses,
-          // VPNs, 802.1X -- lives in NetworkManager's own editor.
           label: "settings"
-          onActivated: {
-            editor.running = true
-            GlobalState.closeWifi()
-          }
+          onActivated: root.openEditor()
         }
       }
     }

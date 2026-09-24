@@ -2,7 +2,6 @@ import QtQuick
 import Quickshell.Wayland
 import qs.services
 import qs.components
-// import qs.services
 import Quickshell.Hyprland
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -106,7 +105,6 @@ Button {
       height: 20
 
       anchors.right: root.direction > 0 ? parent.right : undefined
-      // anchors.fill: parent
       width: Style.bar.height - Style.bar.borderWidth - Style.spacing.p1 * 2
       rotation: root.direction > 0 ? 90 : 270
       anchors.verticalCenter: parent.verticalCenter

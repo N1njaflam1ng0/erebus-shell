@@ -11,14 +11,9 @@
 
 import qs.services
 import qs.config
-import qs.utils
 import qs.components
 import QtQuick
-// import QtQuick.Controls
 import QtQuick.Layouts
-// import Quickshell
-// import Quickshell.Hyprland
-// import Quickshell.Wayland
 import Quickshell.Widgets
 
 Item {
@@ -39,10 +34,8 @@ Item {
         anchors.fill: parent
         anchors.centerIn: parent
         anchors.margins: 4
-        // anchors.centerIn: parent
         source: ContextData.data.icon
         // implicitSize: parent.height - Style.spacing.p3
-        // anchors.margins: Style.spacing.p0
       }
     }
     ColumnLayout {

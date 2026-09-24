@@ -73,7 +73,7 @@ Singleton {
 
   component NotifTimer: Timer {
     required property int notificationId
-    interval: 7000
+    interval: Style.notifications.timeout
     running: true
     onTriggered: () => {
       const index = root.list.findIndex((notif) => notif.notificationId === notificationId);
