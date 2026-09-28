@@ -142,18 +142,19 @@
         launcher
       ];
 
-      # Feeds the bar's audio visualiser. `raw` output on stdout is what
+      # Feeds the media panel's visualiser. `raw` output on stdout is what
       # services/AudioData.qml parses.
       xdg.configFile."cava/erebus.ini".text = ''
-        ; Mirrors roosta's ritual.ini. ascii/raw on stdout is what
-        ; services/AudioData.qml reads, and ascii_max_range must stay 100
-        ; because that parser divides each value by 100.
+        ; ascii/raw on stdout is what services/AudioData.qml reads, and
+        ; ascii_max_range must stay 100 because that parser divides each value
+        ; by 100. One column per bar in modules/media/MediaPanel.qml's progress
+        ; bar; mono, since stereo draws a mirrored spectrum.
         [general]
-        bars = 128
+        bars = 48
 
         [output]
         method = raw
-        channels = stereo
+        channels = mono
         data_format = ascii
         ascii_max_range = 100
       '';

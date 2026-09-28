@@ -84,7 +84,7 @@ Item {
             sourceComponent: Context { }
           }
 
-          MediaWidget { }
+          MediaWidget { monitorId: root.monitorId }
         }
       }
 

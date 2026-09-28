@@ -18,6 +18,7 @@ import qs.modules.bar
 import qs.modules.launcher
 import qs.modules.calendar
 import qs.modules.network
+import qs.modules.media
 import qs.modules.system
 import qs.modules.tray
 import QtQuick
@@ -77,13 +78,20 @@ ShellRoot {
         screen: scope.modelData
 
         WlrLayershell.exclusionMode: ExclusionMode.Ignore
-        // OnDemand, not Exclusive: the calendar's quick-add field and the wifi
-        // panel's password field can be clicked into, but opening either panel
-        // doesn't steal the keyboard.
-        WlrLayershell.keyboardFocus: GlobalState.launcherOpen || GlobalState.calendarOpen
-          || GlobalState.wifiOpen
+        // OnDemand, not Exclusive, and for every overlay: the focus grab below
+        // hands this window the keyboard while one is open, which is what lets
+        // the Escape shortcut reach it. Text fields still take it on click.
+        WlrLayershell.keyboardFocus: GlobalState.overlayOpen
         ? WlrKeyboardFocus.OnDemand
         : WlrKeyboardFocus.None
+
+        // Window-wide, so it wins over whichever field has focus: Escape in the
+        // launcher or the wifi password box closes everything too.
+        Shortcut {
+          sequence: "Escape"
+          enabled: GlobalState.overlayOpen
+          onActivated: GlobalState.closeAll()
+        }
 
         HyprlandFocusGrab {
           id: grab
@@ -92,6 +100,7 @@ ShellRoot {
             || (GlobalState.calendarOpen && GlobalState.calendarMonitorId === scope.monitorId)
             || (GlobalState.wifiOpen && GlobalState.wifiMonitorId === scope.monitorId)
             || (GlobalState.sysOpen && GlobalState.sysMonitorId === scope.monitorId)
+            || (GlobalState.mediaOpen && GlobalState.mediaMonitorId === scope.monitorId)
           // Deliberately empty, for every overlay. Hyprland fires `cleared`
           // immediately after the grab activates, so closing from here shuts
           // the panel the moment it opens. Click-outside is handled instead by
@@ -171,13 +180,7 @@ ShellRoot {
           ]
           MouseArea {
             anchors.fill: parent
-            onClicked: {
-              if (GlobalState.launcherOpen) { GlobalState.closeLauncher() }
-              if (GlobalState.trayMenuOpen) { GlobalState.closeTrayMenu() }
-              if (GlobalState.calendarOpen) { GlobalState.closeCalendar() }
-              if (GlobalState.wifiOpen) { GlobalState.closeWifi() }
-              if (GlobalState.sysOpen) { GlobalState.closeSys() }
-            }
+            onClicked: GlobalState.closeAll()
           }
           states: [
             State {
@@ -216,6 +219,10 @@ ShellRoot {
         }
 
         SysPanel {
+          monitorId: scope.monitorId
+        }
+
+        MediaPanel {
           monitorId: scope.monitorId
         }
 

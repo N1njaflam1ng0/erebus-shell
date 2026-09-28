@@ -61,6 +61,16 @@ Singleton {
   }
   readonly property Wifi wifi: Wifi { }
 
+  component Media: QtObject {
+    readonly property int width: 320 * Config.scale
+    // Square art on top, then track info, progress and the transport row.
+    readonly property int artSize: 296 * Config.scale
+    readonly property int progressHeight: 4 * Config.scale
+    // The progress bar's columns grow up to this with the music.
+    readonly property int visualizerHeight: 28 * Config.scale
+  }
+  readonly property Media media: Media { }
+
   component Sysmon: QtObject {
     readonly property int width: 380 * Config.scale
     // Tall: four stacked sections plus the process list, which is the only one

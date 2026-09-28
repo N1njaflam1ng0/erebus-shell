@@ -26,8 +26,12 @@ Singleton {
   property string wifiMonitorId: ""
   property bool sysOpen: false
   property string sysMonitorId: ""
+  property bool mediaOpen: false
+  property string mediaMonitorId: ""
+  // Window x of the bar widget's centre; the panel hangs under it.
+  property real mediaAnchorX: 0
   property bool overlayOpen: root.launcherOpen || root.trayMenuOpen || root.calendarOpen
-    || root.wifiOpen || root.sysOpen
+    || root.wifiOpen || root.sysOpen || root.mediaOpen
   property QsMenuHandle activeMenu: null
   property bool trayMenuOpen: false
   property int menuDirection: Qt.LeftToRight
@@ -70,6 +74,13 @@ Singleton {
     direction = Qt.LeftToRight,
     index = 0
   }) {
+    // The launcher takes over the keyboard and the top of the screen, so
+    // nothing else stays open under it.
+    root.closeCalendar()
+    root.closeWifi()
+    root.closeSys()
+    root.closeMedia()
+    if (root.trayMenuOpen) root.closeTrayMenu()
     launcherMonitorId = id
     if (index >= 0) {
       root.menuIndex = index
@@ -144,6 +155,37 @@ Singleton {
     } else {
       openSys(id)
     }
+  }
+
+  // The media dropdown hangs off the left half of the bar, away from the
+  // top-right corner, so it doesn't close the calendar/wifi/system panels.
+  function openMedia(id = Config.primaryDisplay, x = 0) {
+    root.mediaMonitorId = id
+    root.mediaAnchorX = x
+    root.mediaOpen = true
+  }
+
+  function closeMedia() {
+    root.mediaOpen = false
+  }
+
+  function toggleMedia(id = Config.primaryDisplay, x = 0) {
+    if (root.mediaOpen && root.mediaMonitorId === id) {
+      closeMedia()
+    } else {
+      openMedia(id, x)
+    }
+  }
+
+  // Escape and click-outside. The launcher is guarded because closing it
+  // restarts the reset timer, which would clobber a launcher opened meanwhile.
+  function closeAll() {
+    root.closeCalendar()
+    root.closeWifi()
+    root.closeSys()
+    root.closeMedia()
+    if (root.trayMenuOpen) root.closeTrayMenu()
+    if (root.launcherOpen) root.closeLauncher()
   }
 
   function closeLauncher() {

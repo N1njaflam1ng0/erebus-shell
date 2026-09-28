@@ -16,6 +16,7 @@ pragma ComponentBehavior: Bound
 
 import Quickshell.Io
 import Quickshell
+import qs
 import qs.config
 import QtQuick
 
@@ -110,13 +111,15 @@ Singleton {
   }
 
 
-  // Use cava to provde data for visualizers, runs in background
-  // populating root.bars with parsed integers for each bar if
-  // there is audio data
+  // Use cava to provde data for visualizers, populating root.bars with parsed
+  // integers for each bar if there is audio data. Only the media panel draws
+  // them, so cava only runs while that is open -- which also restarts it on
+  // every open, should it ever have died.
   Process {
     id: cava
     command: [Host.cava, "-p", `${Paths.config}/cava/erebus.ini`]
-    running: true
+    running: GlobalState.mediaOpen
+    onRunningChanged: if (!running) root.bars = []
 
     stdout: SplitParser {
       splitMarker: "\n"

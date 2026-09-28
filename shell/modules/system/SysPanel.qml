@@ -4,9 +4,8 @@
 //
 // Built on the same sliding-Item idiom as modules/network/WifiPanel.qml: it
 // lives inside shell.qml's fullscreen "main" panel, and GlobalState.overlayOpen
-// flips that panel's input mask so the contents become clickable. Like the
-// calendar -- and unlike the wifi panel -- it never wants the keyboard, so
-// shell.qml leaves it out of the OnDemand focus condition.
+// flips that panel's input mask so the contents become clickable. Nothing in it
+// is typed into; shell.qml only gives it the keyboard so Escape can close it.
 //
 // shell.qml builds one of these per monitor, so nothing stateful is kept here:
 // the resource histories live in services/ResourceUsage.qml and

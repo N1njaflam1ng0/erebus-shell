@@ -1,48 +1,52 @@
 // MPRIS media widget. roosta imports Quickshell.Services.Mpris in AudioData.qml
 // but never renders it; your noctalia bar had a media widget with a scrolling
-// title, so this fills that gap.
+// title, so this fills that gap. Clicking drops modules/media/MediaPanel.qml out
+// of the bar; player selection lives in services/MediaData.qml so the two agree.
 
 import QtQuick
 import QtQuick.Layouts
-import QtQml.Models
-import Quickshell.Services.Mpris
+import qs
+import qs.services
 import qs.config
 
 Rectangle {
   id: root
+  required property string monitorId
 
-  // Prefer whatever is actually playing; otherwise fall back to the first player
-  // so a paused track still shows.
-  // Mpris.players is lazily populated like Networking.devices; the tracker below
-  // forces it and re-triggers this binding. See services/NetworkData.qml.
-  property int playerGeneration: 0
-  readonly property var players: {
-    root.playerGeneration;
-    return Mpris.players?.values ?? [];
-  }
-  readonly property var player: players.find(p => p.isPlaying) ?? players[0] ?? null
-  readonly property bool active: player !== null
+  readonly property var player: MediaData.player
+  readonly property bool active: MediaData.active
+  readonly property bool panelShown: GlobalState.mediaOpen
+    && GlobalState.mediaMonitorId === root.monitorId
 
   visible: active
   implicitWidth: active ? layout.implicitWidth : 0
   implicitHeight: parent.height
   color: "transparent"
 
-  function label() {
-    if (!active) return "";
-    const title = player.trackTitle || "Unknown";
-    const artist = player.trackArtist || "";
-    return artist ? `${artist} — ${title}` : title;
-  }
-
-  Instantiator {
-    model: Mpris.players
-    delegate: QtObject {
-      required property var modelData
-      readonly property bool playing: modelData?.isPlaying ?? false
-      onPlayingChanged: root.playerGeneration++
-      Component.onCompleted: root.playerGeneration++
-      Component.onDestruction: root.playerGeneration++
+  // Declared before the layout so the play/pause glyph's own MouseArea sits on
+  // top of it; everything else on the widget lands here.
+  MouseArea {
+    id: area
+    anchors.fill: parent
+    hoverEnabled: true
+    cursorShape: Qt.PointingHandCursor
+    acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.BackButton | Qt.ForwardButton
+    onClicked: mouse => {
+      if (!root.player) return;
+      if (mouse.button === Qt.LeftButton) {
+        // The panel is a sibling of the bar in the fullscreen "main" window, so
+        // window coordinates are its parent's coordinates.
+        GlobalState.toggleMedia(root.monitorId, root.mapToItem(null, root.width / 2, 0).x);
+      }
+      else if (mouse.button === Qt.MiddleButton && root.player.canTogglePlaying) root.player.togglePlaying();
+      else if (mouse.button === Qt.ForwardButton && root.player.canGoNext) root.player.next();
+      else if (mouse.button === Qt.BackButton && root.player.canGoPrevious) root.player.previous();
+    }
+    // Scroll to skip tracks.
+    onWheel: wheel => {
+      if (!root.player) return;
+      if (wheel.angleDelta.y > 0 && root.player.canGoNext) root.player.next();
+      else if (wheel.angleDelta.y < 0 && root.player.canGoPrevious) root.player.previous();
     }
   }
 
@@ -74,15 +78,19 @@ Rectangle {
 
       Text {
         id: title
-        text: root.label()
+        text: MediaData.label
         font.family: Style.font.main
         font.pointSize: Style.font.small
-        color: Style.colors.white
+        color: area.containsMouse || root.panelShown ? Style.colors.accent : Style.colors.white
+
+        Behavior on color {
+          ColorAnimation { duration: Style.durations.small; easing.type: Easing.OutQuad }
+        }
 
         // Only animate when the text actually overflows.
         readonly property real overflow: Math.max(0, title.implicitWidth - 220)
         SequentialAnimation on x {
-          running: hover.hovered && title.overflow > 0
+          running: area.containsMouse && title.overflow > 0
           loops: Animation.Infinite
           NumberAnimation { from: 0; to: -title.overflow; duration: 40 * title.overflow; easing.type: Easing.Linear }
           PauseAnimation { duration: 800 }
@@ -91,25 +99,6 @@ Rectangle {
         }
         onTextChanged: x = 0
       }
-
-      HoverHandler { id: hover }
-    }
-  }
-
-  MouseArea {
-    anchors.fill: parent
-    acceptedButtons: Qt.MiddleButton | Qt.BackButton | Qt.ForwardButton
-    onClicked: mouse => {
-      if (!root.player) return;
-      if (mouse.button === Qt.MiddleButton && root.player.canTogglePlaying) root.player.togglePlaying();
-      else if (mouse.button === Qt.ForwardButton && root.player.canGoNext) root.player.next();
-      else if (mouse.button === Qt.BackButton && root.player.canGoPrevious) root.player.previous();
-    }
-    // Scroll to skip tracks.
-    onWheel: wheel => {
-      if (!root.player) return;
-      if (wheel.angleDelta.y > 0 && root.player.canGoNext) root.player.next();
-      else if (wheel.angleDelta.y < 0 && root.player.canGoPrevious) root.player.previous();
     }
   }
 }
