@@ -24,16 +24,11 @@ import QtQuick
 // Dont know why qmllint cant se is usage (Paths)
 import qs.utils
 
-import Quickshell.Services.Mpris
 import Quickshell.Services.Pipewire
 import Quickshell.Hyprland
 
 Singleton {
   id: root
-
-  readonly property list<MprisPlayer> players: Mpris.players.values
-
-  readonly property MprisPlayer activePlayer: players[0] ?? null
 
   property bool ready: Pipewire.defaultAudioSink?.ready ?? false
   property PwNode sink: Pipewire.defaultAudioSink
@@ -51,7 +46,6 @@ Singleton {
     return n?.name !== "cava" && !/^capture\./.test(n?.name ?? "")
   }
   property list<PwNode> audioIn: streamNodes.filter(s => !s.isSink && s?.audio && root.isRealCapture(s))
-  property list<PwNode> audioOut: streamNodes.filter(s => s.isSink && s?.audio)
 
 
   property real volume: sink?.audio.volume ?? 0

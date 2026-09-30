@@ -1,5 +1,4 @@
-// Transient volume/brightness readout. Noctalia had one; roosta does not -- his
-// bar's AudioButton auto-expands instead. Shown only on the focused monitor so a
+// Transient volume/brightness readout. Shown only on the focused monitor so a
 // volume tap doesn't flash on all three screens at once.
 
 import QtQuick
@@ -20,7 +19,8 @@ Item {
 
   readonly property bool onFocused: Hyprland.focusedMonitor?.name === root.monitorId
 
-  visible: shown && onFocused
+  // Gated on opacity rather than `shown`, so the fade-out actually plays.
+  visible: onFocused && opacity > 0
   implicitWidth: 260
   implicitHeight: 64
 
@@ -99,7 +99,7 @@ Item {
           height: parent.height
           width: parent.width * Math.max(0, Math.min(1, root.level))
           color: root.muted ? Style.colors.brightBlack : Style.colors.accent
-          Behavior on width { NumberAnimation { duration: Style.durations.tiny } }
+          Behavior on width { NumberAnimation { duration: Style.durations.tiny; easing.type: Easing.OutCubic } }
         }
       }
 
@@ -121,5 +121,7 @@ Item {
   }
 
   opacity: shown ? 1 : 0
-  Behavior on opacity { NumberAnimation { duration: Style.durations.small } }
+  scale: shown ? 1 : 0.96
+  Behavior on opacity { NumberAnimation { duration: Style.durations.small; easing.type: Easing.OutCubic } }
+  Behavior on scale { NumberAnimation { duration: Style.durations.small; easing.type: Easing.OutCubic } }
 }

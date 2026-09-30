@@ -24,8 +24,6 @@ Singleton {
   // over the raw PipeWire node name.
   property string audioInTooltip: AudioData.audioIn
     .map(n => n.description || n.nickname || n.name).join('\n')
-  property bool videoIn: false
-  property bool audioOut: AudioData.audioOut.length > 0
   property bool hasAlerts: audioIn || cpuUsage
   property bool cpuUsage: ResourceUsage.cpuUsage >= 0.8
 }

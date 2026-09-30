@@ -110,7 +110,10 @@ Singleton {
   }
   readonly property Spacing spacing: Spacing { }
 
+  // Motion tokens. hover: colour/border feedback (OutQuad). small: size and
+  // slide changes (OutCubic). Anything longer is reserved for ambient motion.
   component Durations: QtObject {
+    readonly property int hover: 150
     readonly property int slow: 800
     readonly property int normal: 400
     readonly property int medium: 300

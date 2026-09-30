@@ -109,8 +109,8 @@ Button {
 
     Behavior on borderColor {
       ColorAnimation {
-        duration: Style.durations.normal
-        easing.type: Easing.OutCubic
+        duration: Style.durations.hover
+        easing.type: Easing.OutQuad
       }
     }
 

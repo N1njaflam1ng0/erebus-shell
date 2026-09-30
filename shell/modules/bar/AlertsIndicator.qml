@@ -24,11 +24,14 @@ BorderRect {
   borderColor: Style.colors.gray3
   borderWidth: Style.bar.borderWidth
   Layout.bottomMargin: Style.bar.borderWidth
-  visible: Alerts.hasAlerts
+  // Fade rather than pop; `visible` only drops once the fade has finished,
+  // so the row reflows once instead of at both ends of the animation.
+  opacity: Alerts.hasAlerts ? 1 : 0
+  visible: opacity > 0
+  Behavior on opacity { NumberAnimation { duration: Style.durations.small; easing.type: Easing.OutCubic } }
 
   required property string monitorId
 
-  property int iconSize: 16 * Config.scale
   implicitWidth: layout.implicitWidth + Style.spacing.p1 * 2
   implicitHeight: Style.bar.height - Style.spacing.p3
   MouseArea {
@@ -41,7 +44,7 @@ BorderRect {
   Behavior on implicitWidth {
     NumberAnimation {
       duration: Style.durations.small
-      easing.type: Easing.InOutCubic
+      easing.type: Easing.OutCubic
     }
   }
   states: [
@@ -56,6 +59,9 @@ BorderRect {
       PropertyChanges { root.borderColor: Style.colors.gray6 }
     }
   ]
+  transitions: Transition {
+    ColorAnimation { duration: Style.durations.hover; easing.type: Easing.OutQuad }
+  }
   RowLayout {
     id: layout
     spacing: Style.spacing.p1
@@ -63,22 +69,6 @@ BorderRect {
     anchors.leftMargin: Style.spacing.p1
     anchors.rightMargin: Style.spacing.p1
 
-    Rectangle {
-      id: failedServices
-      visible: false
-      color: "transparent"
-      Layout.preferredWidth: Style.font.size3
-      Layout.preferredHeight: Style.font.size3
-      Text {
-        text: ""
-        color: Style.colors.brightOrange
-        anchors.centerIn: parent
-        font {
-          family: Style.font.light
-          pixelSize: Style.font.size3
-        }
-      }
-    }
     Rectangle {
       id: audioIn
       visible: Alerts.audioIn
@@ -113,39 +103,6 @@ BorderRect {
         text: AudioData.source?.audio?.muted ? "󰍭" : ""
         anchors.centerIn: parent
         color: AudioData.source?.audio?.muted ? Style.colors.brightRed : Style.colors.brightYellow
-        font {
-          family: Style.font.light
-          pixelSize: Style.font.size3
-        }
-      }
-    }
-    Rectangle {
-      id: audioOut
-      visible: false
-      color: "transparent"
-      Layout.preferredWidth: Style.font.size3
-      Layout.preferredHeight: Style.font.size3
-      Text {
-        text: "󰓃"
-        anchors.centerIn: parent
-        color: Style.colors.white
-        font {
-          family: Style.font.light
-          pixelSize: Style.font.size3
-        }
-      }
-    }
-    Rectangle {
-      id: screenshare
-      color: "transparent"
-      visible: Alerts.videoIn
-      Layout.preferredWidth: Style.font.size3
-      Layout.preferredHeight: Style.font.size3
-
-      Text {
-        text: "󱎴"
-        anchors.centerIn: parent
-        color: Style.colors.brightRed
         font {
           family: Style.font.light
           pixelSize: Style.font.size3

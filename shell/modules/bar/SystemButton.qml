@@ -50,6 +50,10 @@ BorderRect {
     }
   ]
 
+  transitions: Transition {
+    ColorAnimation { duration: Style.durations.hover; easing.type: Easing.OutQuad }
+  }
+
   RowLayout {
     id: layout
     spacing: Style.spacing.p1

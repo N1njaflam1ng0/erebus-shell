@@ -89,8 +89,8 @@ Button {
   transitions: [
     Transition {
       ColorAnimation {
-        duration: Style.durations.tiny
-        easing.type: Easing.InOutQuad
+        duration: Style.durations.hover
+        easing.type: Easing.OutQuad
       }
     }
   ]

@@ -173,7 +173,7 @@ ShellRoot {
           transitions: [
             Transition {
               ColorAnimation {
-                duration: 300
+                duration: Style.durations.medium
                 easing.type: Easing.OutQuad
               }
             }
@@ -185,7 +185,9 @@ ShellRoot {
           states: [
             State {
               name: "open"
-              when: (GlobalState.launcherOpen || GlobalState.trayMenuOpen)
+              // Only the monitor the launcher/tray menu is actually on dims.
+              when: ((GlobalState.launcherOpen && GlobalState.launcherMonitorId === scope.monitorId)
+                  || (GlobalState.trayMenuOpen && Hyprland.focusedMonitor?.name === scope.monitorId))
                 && scope.windows.length > 0
               PropertyChanges { content.color: Functions.transparentize("#000", 0.7) }
             }
@@ -245,7 +247,6 @@ ShellRoot {
           sourceComponent: TrayMenu {
             Component.onCompleted: this.open();
             trayItemMenuHandle: GlobalState.activeMenu
-            onMenuOpened: (window) => {};
             onMenuClosed: GlobalState.closeTrayMenu()
             monitorId: scope.monitorId
           }

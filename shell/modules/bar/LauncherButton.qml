@@ -426,7 +426,7 @@ Item {
 
         Behavior on color {
           ColorAnimation {
-            duration: 500
+            duration: Style.durations.normal
             easing.type: Easing.OutQuad
           }
         }
@@ -434,13 +434,13 @@ Item {
 
       Behavior on color {
         ColorAnimation {
-          duration: 50
+          duration: Style.durations.tiny
           easing.type: Easing.OutQuad
         }
       }
       Behavior on placeholderTextColor {
         ColorAnimation {
-          duration: 50
+          duration: Style.durations.tiny
           easing.type: Easing.OutQuad
         }
       }

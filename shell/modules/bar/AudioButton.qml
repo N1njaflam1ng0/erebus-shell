@@ -38,14 +38,11 @@ ExpandingButton {
   }
   buttonLabel: muted ? mutedIcon : getSinkIcon(AudioData.sink)
 
-  Connections {
-    target: AudioData
-    function onVolumeChanged() {
-      if (AudioData.ready) {
-        root.active = true
-        timer.restart()
-      }
-    }
+  // Expands when scrolled, not on every volume change: volume keys already get
+  // the Osd, and expanding here re-laid out the bar on every monitor per tap.
+  function peek() {
+    root.active = true
+    timer.restart()
   }
 
   Timer {
@@ -70,6 +67,7 @@ ExpandingButton {
   onRightClick: openAudioMenu
 
   wheelHandler: (event) => {
+    root.peek()
     if (event.angleDelta.y > 0) {
       AudioData.incrementVolume()
     } else if (event.angleDelta.y < 0) {

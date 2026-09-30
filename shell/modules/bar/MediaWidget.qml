@@ -1,7 +1,6 @@
-// MPRIS media widget. roosta imports Quickshell.Services.Mpris in AudioData.qml
-// but never renders it; your noctalia bar had a media widget with a scrolling
-// title, so this fills that gap. Clicking drops modules/media/MediaPanel.qml out
-// of the bar; player selection lives in services/MediaData.qml so the two agree.
+// MPRIS media widget with a scrolling title. Clicking drops
+// modules/media/MediaPanel.qml out of the bar; player selection lives in
+// services/MediaData.qml so the two agree.
 
 import QtQuick
 import QtQuick.Layouts
@@ -18,8 +17,12 @@ Rectangle {
   readonly property bool panelShown: GlobalState.mediaOpen
     && GlobalState.mediaMonitorId === root.monitorId
 
-  visible: active
-  implicitWidth: active ? layout.implicitWidth : 0
+  // Fades in and out as players come and go; `visible` drops only once the
+  // fade is done so the row reflows once.
+  opacity: active ? 1 : 0
+  visible: opacity > 0
+  Behavior on opacity { NumberAnimation { duration: Style.durations.small; easing.type: Easing.OutCubic } }
+  implicitWidth: layout.implicitWidth
   implicitHeight: parent.height
   color: "transparent"
 

@@ -37,9 +37,7 @@ BorderRect {
   required property string buttonLabel
   property bool isEmpty: false;
 
-  property var onRightClick: () => {
-    // console.log("right click")
-  }
+  property var onRightClick: () => {}
 
   property var onLeftClick: () => {
     if (!root.isEmpty) {
@@ -47,9 +45,7 @@ BorderRect {
     }
   }
 
-  property var wheelHandler: (event) => {
-    // console.log("rotation", event.angleDelta.y, "scaled", rotation, "@", wheel.point.position, "=>", parent.rotation)
-  }
+  property var wheelHandler: (event) => {}
 
   WheelHandler {
     id: wheel
@@ -103,7 +99,7 @@ BorderRect {
   Behavior on implicitWidth {
     NumberAnimation {
       duration: Style.durations.small
-      easing.type: Easing.InOutCubic
+      easing.type: Easing.OutCubic
     }
   }
   states: [
@@ -133,6 +129,10 @@ BorderRect {
       PropertyChanges { buttonBg.borderColor: Style.colors.gray6 }
     }
   ]
+
+  transitions: Transition {
+    ColorAnimation { duration: Style.durations.hover; easing.type: Easing.OutQuad }
+  }
 
   RowLayout {
     id: layout

@@ -26,21 +26,32 @@ BorderRect {
   borderColor: Style.colors.gray3
   color: Style.colors.black
   required property string monitorId
-  property var workspaces: HyprlandData.workspacesByMonitor[monitorId] ?? []
-  readonly property var occupied: workspaces.reduce((acc, ws) => {
+  // Latest data from Hyprland, replaced on every event burst.
+  readonly property var current: HyprlandData.workspacesByMonitor[monitorId] ?? []
+  readonly property var occupied: current.reduce((acc, ws) => {
     acc[ws.address] = ws?.windows > 0;
     return acc;
   }, {})
+
+  // The Repeater model. Only reassigned when the set of workspaces changes:
+  // handing it a new (if identical) array destroys and rebuilds every button,
+  // and `current` is replaced on every Hyprland event.
+  property var workspaces: []
+  function syncWorkspaces(): void {
+    const key = ws => ws.map(w => `${w.address}:${w.type}`).join(",")
+    if (key(root.current) !== key(root.workspaces))
+      root.workspaces = root.current
+  }
+  onCurrentChanged: syncWorkspaces()
   readonly property HyprlandMonitor monitor: Hyprland
     .monitorFor(root.QsWindow.window?.screen)
-  readonly property Toplevel activeWindow: ToplevelManager.activeToplevel
   readonly property string activeWorkspaceAddress: HyprlandData
     .activeWorkspaceAddressFor(monitorId)
 
   Behavior on implicitWidth {
     NumberAnimation {
       duration: Style.durations.small
-      easing.type: Easing.InOutCubic
+      easing.type: Easing.OutCubic
     }
   }
   implicitWidth: layout.implicitWidth + Style.spacing.p3 + Style.bar.borderWidth * 2
@@ -70,7 +81,7 @@ BorderRect {
       property real targetWidth: 0
 
       function updateIndicator() {
-        let x = Style.spacing.p1 + Style.bar.borderWidth
+        let x = 0
         let targetIdx = root.workspaces.findIndex(w => {
           return w.address === root.activeWorkspaceAddress
         });
@@ -90,28 +101,27 @@ BorderRect {
         }
       }
 
-      Behavior on x {
+      // Only the offset within the row animates; the row's own position is
+      // added live. The row is centred in a container that resizes on its own
+      // timeline, so animating an absolute x drifted off the buttons mid-resize.
+      Behavior on targetX {
         NumberAnimation {
-          duration: Style.animationCurves
-            .expressiveDefaultSpatialDuration
+          duration: Style.animationCurves.expressiveFastSpatialDuration
           easing.type: Easing.BezierSpline
-          easing.bezierCurve: Style.animationCurves
-            .expressiveDefaultSpatial
+          easing.bezierCurve: Style.animationCurves.standardDecel
         }
       }
 
-      Behavior on width {
+      Behavior on targetWidth {
         NumberAnimation {
-          duration: Style.animationCurves
-            .expressiveDefaultSpatialDuration
+          duration: Style.animationCurves.expressiveFastSpatialDuration
           easing.type: Easing.BezierSpline
-          easing.bezierCurve: Style.animationCurves
-            .expressiveDefaultSpatial
+          easing.bezierCurve: Style.animationCurves.standardDecel
         }
       }
 
       anchors.verticalCenter: parent.verticalCenter
-      x: targetX
+      x: layout.x + targetX
       width: targetWidth
     }
     RowLayout {
@@ -138,6 +148,7 @@ BorderRect {
   onActiveWorkspaceAddressChanged: activeIndicator.updateIndicator()
   onWorkspacesChanged: activeIndicator.updateIndicator()
   Component.onCompleted: {
+    root.syncWorkspaces();
     activeIndicator.updateIndicator();
   }
 

@@ -98,6 +98,7 @@ Singleton {
   // focus and doesn't bump the exclusion zone, it just floats over the windows.
   function openCalendar(id = Config.primaryDisplay) {
     root.closeSys()
+    root.closeWifi()
     root.calendarMonitorId = id
     root.calendarOpen = true
   }
@@ -119,6 +120,7 @@ Singleton {
   // field is open. shell.qml handles that with OnDemand focus.
   function openWifi(id = Config.primaryDisplay) {
     root.closeSys()
+    root.closeCalendar()
     root.wifiMonitorId = id
     root.wifiOpen = true
   }
