@@ -21,13 +21,6 @@ Canvas {
   property point bottomRight: Qt.point(1, 1)
   property point bottomLeft:  Qt.point(0, 1)
 
-  Behavior on y {
-    NumberAnimation {
-      duration: Style.durations.slow
-      easing.type: Easing.InOutQuad
-    }
-  }
-
   onWidthChanged:            requestPaint()
   onHeightChanged:           requestPaint()
   onFillColorChanged:        requestPaint()

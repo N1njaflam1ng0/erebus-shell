@@ -1,6 +1,4 @@
-// CPU and RAM readout. roosta surfaces CPU only inside AlertsIndicator; your
-// noctalia bar had discrete cpu/ram widgets, so this restores them from the
-// ResourceUsage service he already polls.
+// CPU and RAM readout, from the ResourceUsage service.
 
 import QtQuick
 import QtQuick.Layouts

@@ -41,24 +41,6 @@ Singleton {
 
 
   /**
-   * Truncate string s, not width aware, takes n length or defaults
-   * to Style
-   * @param {String} s - Text to truncate
-   * @param {Number} n - String max length, ellipsis will be inserted past
-   *                     this, defaults to Style.bar.textLength
-   * @returns {String}
-   */
-  function truncate(text, n = Style.bar.textLength) {
-    if (typeof text !== "string") {
-      console.warn("Not a string!")
-      return
-    }
-    if (text && text.length >= n) {
-      return `${text.substring(0, n)} ...`
-    }
-    return text
-  }
-  /**
    * Capitalize string, doesn't handle multiple words
    * @param {String} s - String to capitalize
    * @returns {String} Capitalized string

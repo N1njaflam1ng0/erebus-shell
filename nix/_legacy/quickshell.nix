@@ -31,8 +31,6 @@
         readonly property string left: "${cfg.left}"
         readonly property string right: "${cfg.right}"
 
-        readonly property var outputs: [${lib.concatMapStringsSep ", " (o: "\"${o}\"") cfg.outputs}]
-
         readonly property string terminal: "${cfg.terminal}"
 
         readonly property string power: "erebus-power"
@@ -46,7 +44,6 @@
         readonly property string calc: "erebus-calc"
         readonly property string brightnessctl: "${pkgs.brightnessctl}/bin/brightnessctl"
         readonly property string kbdBacklight: "erebus-kbd-backlight"
-        readonly property string brightness: "erebus-brightness"
         readonly property string sysmon: "${pkgs.btop}/bin/btop"
         readonly property string cava: "${pkgs.cava}/bin/cava"
         readonly property string hyprctl: "${hyprctl}"
@@ -124,7 +121,7 @@
       outputs = lib.mkOption {
         type = lib.types.listOf lib.types.str;
         default = [];
-        description = "Every output the shell knows about. Bars are drawn on all connected outputs regardless.";
+        description = "Every output this host has. Informational only: the shell draws a bar on every connected output.";
       };
       terminal = lib.mkOption {
         type = lib.types.str;

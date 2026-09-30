@@ -92,7 +92,6 @@ Singleton {
   property list<Notif> list: []
   property var popupList: list.filter((notif) => notif.popup);
   property bool popupInhibited: (GlobalState?.launcherMode === "notifications" ?? false) || silent
-  property var latestTimeForApp: ({})
   Component {
     id: notifComponent
     Notif {}
@@ -105,51 +104,6 @@ Singleton {
   function stringifyList(list) {
     return JSON.stringify(list.map((notif) => notifToJSON(notif)), null, 2);
   }
-
-  onListChanged: {
-    // Update latest time for each app
-    root.list.forEach((notif) => {
-      if (!root.latestTimeForApp[notif.appName] || notif.time > root.latestTimeForApp[notif.appName]) {
-        root.latestTimeForApp[notif.appName] = Math.max(root.latestTimeForApp[notif.appName] || 0, notif.time);
-      }
-    });
-    // Remove apps that no longer have notifications
-    Object.keys(root.latestTimeForApp).forEach((appName) => {
-      if (!root.list.some((notif) => notif.appName === appName)) {
-        delete root.latestTimeForApp[appName];
-      }
-    });
-  }
-
-  function appNameListForGroups(groups) {
-    return Object.keys(groups).sort((a, b) => {
-      // Sort by time, descending
-      return groups[b].time - groups[a].time;
-    });
-  }
-
-  function groupsForList(list) {
-    const groups = {};
-    list.forEach((notif) => {
-      if (!groups[notif.appName]) {
-        groups[notif.appName] = {
-          appName: notif.appName,
-          appIcon: notif.appIcon,
-          notifications: [],
-          time: 0
-        };
-      }
-      groups[notif.appName].notifications.push(notif);
-      // Always set to the latest time in the group
-      groups[notif.appName].time = latestTimeForApp[notif.appName] || notif.time;
-    });
-    return groups;
-  }
-
-  property var groupsByAppName: groupsForList(root.list)
-  property var popupGroupsByAppName: groupsForList(root.popupList)
-  property list<string> appNameList: appNameListForGroups(root.groupsByAppName)
-  property list<string> popupAppNameList: appNameListForGroups(root.popupGroupsByAppName)
 
   // Quickshell's notification IDs starts at 1 on each run, while saved notifications
   // can already contain higher IDs. This is for avoiding id collisions
@@ -187,7 +141,7 @@ Singleton {
         if (notification.expireTimeout != 0) {
           newNotifObject.timer = notifTimerComponent.createObject(root, {
             "notificationId": newNotifObject.notificationId,
-            "interval": notification.expireTimeout < 0 ? Config?.notifications?.timeout : notification.expireTimeout,
+            "interval": notification.expireTimeout < 0 ? Style.notifications.timeout : notification.expireTimeout,
           });
         }
         root.unread++;

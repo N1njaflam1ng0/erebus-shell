@@ -17,10 +17,6 @@ Singleton {
   readonly property string left: "DP-3"
   readonly property string right: "HDMI-A-1"
 
-  // Every output the bar should draw on. Anything not listed still gets a bar,
-  // using the primary layout.
-  readonly property var outputs: ["DP-1", "DP-3", "HDMI-A-1"]
-
   readonly property string terminal: "ghostty"
 
   // Helper binaries. Nix replaces each with an absolute store path.
@@ -35,7 +31,6 @@ Singleton {
   readonly property string calc: "erebus-calc"
   readonly property string brightnessctl: "brightnessctl"
   readonly property string kbdBacklight: "erebus-kbd-backlight"
-  readonly property string brightness: "erebus-brightness"
   readonly property string sysmon: "btop"
   readonly property string cava: "cava"
   readonly property string hyprctl: "hyprctl"

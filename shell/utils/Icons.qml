@@ -36,18 +36,6 @@ Singleton {
     return DesktopEntries.heuristicLookup(id)
   }
 
-  // Choose the class with the most occurrences
-  function mostOccuringClass(arr: var): var {
-    return arr.sort((a,b) =>
-    arr.filter(v => v===a).length - arr.filter(v => v===b).length).pop();
-  }
-
-  //
-  function getIcon(key: string): string {
-    const icon = root.icons[key]
-    return Quickshell.iconPath(icon, root.icons.missing)
-  }
-
   function getEntryIcon(entry: DesktopEntry): string {
     const icon = root.getAlias(entry.id) ?? entry?.icon
     return Quickshell.iconPath(icon, root.icons.missing)

@@ -36,7 +36,6 @@ Singleton {
   property string cpuTooltip
 
   property string maxAvailableMemoryString: kbToGbString(ResourceUsage.memoryTotal)
-  property string maxAvailableSwapString: kbToGbString(ResourceUsage.swapTotal)
 
   // Bare GiB numbers, no unit suffix -- SysmonWidget renders them as "12.4/31.3G",
   // which kbToGbString()'s " GB" suffix makes too wide for the bar.

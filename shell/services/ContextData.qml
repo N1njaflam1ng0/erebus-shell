@@ -22,16 +22,10 @@ import qs
 
 Singleton {
   id: root
-  // property HyprlandMonitor monitor: Hyprland.monitorFor(root.QsWindow.window?.screen)
   readonly property Toplevel activeWindow: ToplevelManager.activeToplevel
-  readonly property string activeWindowAddress: `0x${activeWindow?.HyprlandToplevel?.address}`
   property string launcherDesc: ""
   property string trayDesc: ""
 
-
-  function focusingThisMonitor(monitor: HyprlandMonitor): bool {
-    return HyprlandData.activeWorkspace?.monitor == monitor?.name
-  }
 
   property string launcherIcon: {
     const mode = Config.launcherMenus.find(m => m.mode === GlobalState.launcherMode)

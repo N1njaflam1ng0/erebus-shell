@@ -35,7 +35,6 @@ Singleton {
     readonly property int radius: 0 * Config.scale
     readonly property real borderWidth: 1 * Config.scale
     readonly property int sliderWidth: 120 * Config.scale
-    readonly property real iconSize: 20 * Config.scale
   }
   readonly property Bar bar: Bar {}
 
@@ -86,8 +85,6 @@ Singleton {
     readonly property string main: "CaskaydiaCove Nerd Font"
     readonly property string symbols: "Symbols Nerd Font"
     readonly property string light: "CaskaydiaCove Nerd Font Light"
-    readonly property int size0: 10 * Config.scale
-    readonly property int size1: 12 * Config.scale
     readonly property int size2: 14 * Config.scale
     readonly property int size3: 16 * Config.scale
     readonly property int size4: 18 * Config.scale
@@ -127,19 +124,10 @@ Singleton {
     readonly property list<real> expressiveFastSpatial: [0.42, 1.67, 0.21, 0.90, 1, 1] // Default, 350ms
     readonly property list<real> expressiveDefaultSpatial: [0.38, 1.21, 0.22, 1.00, 1, 1] // Default, 500ms
     readonly property list<real> expressiveSlowSpatial: [0.39, 1.29, 0.35, 0.98, 1, 1] // Default, 650ms
-    readonly property list<real> expressiveEffects: [0.34, 0.80, 0.34, 1.00, 1, 1] // Default, 200ms
-    readonly property list<real> emphasized: [0.05, 0, 2 / 15, 0.06, 1 / 6, 0.4, 5 / 24, 0.82, 0.25, 1, 1, 1]
-    readonly property list<real> emphasizedFirstHalf: [0.05, 0, 2 / 15, 0.06, 1 / 6, 0.4, 5 / 24, 0.82]
-    readonly property list<real> emphasizedLastHalf: [5 / 24, 0.82, 0.25, 1, 1, 1]
-    readonly property list<real> emphasizedAccel: [0.3, 0, 0.8, 0.15, 1, 1]
-    readonly property list<real> emphasizedDecel: [0.05, 0.7, 0.1, 1, 1, 1]
-    readonly property list<real> standard: [0.2, 0, 0, 1, 1, 1]
-    readonly property list<real> standardAccel: [0.3, 0, 1, 1, 1, 1]
     readonly property list<real> standardDecel: [0, 0, 0, 1, 1, 1]
     readonly property real expressiveFastSpatialDuration: 350
     readonly property real expressiveDefaultSpatialDuration: 500
     readonly property real expressiveSlowSpatialDuration: 650
-    readonly property real expressiveEffectsDuration: 200
   }
   readonly property AnimationCurves animationCurves: AnimationCurves { }
 }

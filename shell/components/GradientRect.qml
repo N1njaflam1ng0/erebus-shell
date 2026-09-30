@@ -24,11 +24,6 @@ Item {
   property var dashPattern: [4, 4]
   property real dashOffset: 0
 
-  // Marching ants animation
-  property bool animated: false
-  // milliseconds for one full dash-pattern cycle
-  property int animationDuration: 500
-
   function gradientSize() {
     const rad = root.gradientAngle * Math.PI / 180
     const absCos = Math.abs(Math.cos(rad))
@@ -50,11 +45,26 @@ Item {
     visible: root.color.a > 0
   }
 
+  // The layered gradient + mask path costs two offscreen textures and an effect
+  // pass per instance. Once the gradient has fully faded out and the border is
+  // solid, it draws exactly what a plain bordered Rectangle does -- so draw
+  // that instead. Most workspace buttons sit in this state.
+  readonly property bool useEffect: root.dashed || root.gradientActive || gradientRect.opacity > 0
+
+  Rectangle {
+    visible: !root.useEffect
+    anchors.fill: parent
+    radius: root.radius
+    color: "transparent"
+    border.width: root.borderWidth
+    border.color: root.borderColor
+  }
+
   // The gradient source
   Item {
     id: gradientSource
     visible: false
-    layer.enabled: true
+    layer.enabled: root.useEffect
     anchors.fill: parent
 
     // Solid fallback beneath the gradient so we can crossfade to/from it
@@ -88,7 +98,7 @@ Item {
   Shape {
     id: ringMask
     visible: false
-    layer.enabled: true
+    layer.enabled: root.useEffect
     anchors.fill: parent
     preferredRendererType: Shape.CurveRenderer
 
@@ -133,18 +143,8 @@ Item {
     }
   }
 
-  // Marching ants: continuously shift the dash offset by one pattern length
-  NumberAnimation {
-    target: root
-    property: "dashOffset"
-    running: root.dashed && root.animated
-    from: 0
-    to: root.dashPattern.reduce((a, b) => a + b, 0)
-    duration: root.animationDuration
-    loops: Animation.Infinite
-  }
-
   MultiEffect {
+    visible: root.useEffect
     anchors.fill: parent
     source: gradientSource
     maskEnabled: true
