@@ -59,7 +59,7 @@ Button {
     id: moveWindow
     running: false
     property string wsAddress: ""
-    command: ["hyprctl", "eval", `hl.config({cursor = { no_warps = true }}); hl.dispatch(hl.dsp.window.move({ workspace = "${wsAddress}", window = 'activewindow', follow = true })); hl.config({cursor = { no_warps = false }})
+    command: [Host.hyprctl, "eval", `hl.config({cursor = { no_warps = true }}); hl.dispatch(hl.dsp.window.move({ workspace = "${wsAddress}", window = 'activewindow', follow = true })); hl.config({cursor = { no_warps = false }})
     `]
   }
 
@@ -73,7 +73,7 @@ Button {
     if (current === 0) { return }
     let move = current + root.direction
     let focusedMonitor = Hyprland.focusedMonitor?.name ?? ""
-    if (focusedMonitor !== Config.displays.center && focusedMonitor !== Config.displays.tv) { return }
+    if (focusedMonitor !== Config.displays.center) { return }
 
     if (move > persistent.length) {
       if (direction < 0) {

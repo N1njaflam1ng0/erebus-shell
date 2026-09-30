@@ -19,6 +19,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
+import qs.config
 import qs.utils
 
 /**
@@ -27,18 +28,11 @@ import qs.utils
 Singleton {
   id: root
   property var windowList: []
-  property var addresses: []
-  property var windowByAddress: ({})
   property var workspaces: []
-  property var workspaceAddresses: []
-  property var workspaceByAddress: ({})
   property var workspacesByMonitor: ({})
   property var windowsByWorkspace: ({})
   property var activeWorkspace: null
   property var monitors: []
-  property var layers: ({})
-  property var special: []
-  property string specialEventData: ""
   property string submap: ""
   property bool submapActive: submap.length > 0
 
@@ -88,39 +82,31 @@ Singleton {
     }
   }
 
-  function updateWindowList() {
+  function updateAll() {
     getClients.running = true;
-  }
-
-  function updateLayers() {
-    getLayers.running = true;
-  }
-
-  function updateMonitors() {
     getMonitors.running = true;
-  }
-
-  function updateWorkspaces() {
     getWorkspaces.running = true;
     getActiveWorkspace.running = true;
+    Hyprland.refreshToplevels();
   }
 
-  function updateAll() {
-    updateWindowList();
-    updateMonitors();
-    updateLayers();
-    updateWorkspaces();
+  Component.onCompleted: updateAll()
+
+  // Hyprland emits events in bursts (a window open is openwindow + activewindow
+  // + activewindowv2 + focusedmon ...). Refreshing once per burst instead of
+  // once per event saves forking four hyprctl processes per event and
+  // re-rendering every workspace button for each of them.
+  Timer {
+    id: refreshTimer
+    interval: 16
+    onTriggered: root.updateAll()
   }
 
-  Component.onCompleted: {
-    updateAll();
-  }
   Connections {
     target: Hyprland
 
     function onRawEvent(event) {
-      root.updateAll()
-      Hyprland.refreshToplevels()
+      refreshTimer.restart()
       if (event.name === "urgent") {
         const win = root.windowList.find(w => w.address === `0x${event.data}`)
         if (win) {
@@ -131,28 +117,19 @@ Singleton {
         }
       } else if (event.name === "submap") {
         root.submap = event?.data
-      } else if (event.name === "activespecial") {
-        root.specialEventData = event?.data
       }
     }
   }
 
   Process {
     id: getClients
-    command: ["hyprctl", "clients", "-j"]
+    command: [Host.hyprctl, "clients", "-j"]
     stdout: StdioCollector {
       id: clientsCollector
       onStreamFinished: {
         if (clientsCollector?.text) {
           root.windowList = JSON.parse(clientsCollector.text)
-          let tempWinByAddress = {};
-          for (var i = 0; i < root.windowList.length; ++i) {
-            var win = root.windowList[i];
-            tempWinByAddress[win.address] = win;
-          }
-          root.windowByAddress = tempWinByAddress;
           root.windowsByWorkspace = Functions.groupBy(root.windowList, w => w.workspace.address)
-          root.addresses = root.windowList.map(win => win.address);
         }
       }
     }
@@ -160,7 +137,7 @@ Singleton {
 
   Process {
     id: getMonitors
-    command: ["hyprctl", "monitors", "-j"]
+    command: [Host.hyprctl, "monitors", "-j"]
     stdout: StdioCollector {
       id: monitorsCollector
       onStreamFinished: {
@@ -172,21 +149,8 @@ Singleton {
   }
 
   Process {
-    id: getLayers
-    command: ["hyprctl", "layers", "-j"]
-    stdout: StdioCollector {
-      id: layersCollector
-      onStreamFinished: {
-        if (layersCollector?.text) {
-          root.layers = JSON.parse(layersCollector.text);
-        }
-      }
-    }
-  }
-
-  Process {
     id: getWorkspaces
-    command: ["hyprctl", "workspaces", "-j"]
+    command: [Host.hyprctl, "workspaces", "-j"]
     stdout: StdioCollector {
       id: workspacesCollector
       onStreamFinished: {
@@ -202,15 +166,7 @@ Singleton {
               return a.address.localeCompare(b.address);
             });
           root.workspaces = workspaces
-          root.special = workspaces.filter(w => w.type === "special")
           root.workspacesByMonitor = Functions.groupBy(root.workspaces, x => x.monitor)
-          let byAddress = {};
-          for (var i = 0; i < root.workspaces.length; ++i) {
-            var ws = root.workspaces[i];
-            byAddress[ws.address] = ws;
-          }
-          root.workspaceByAddress = byAddress
-          root.workspaceAddresses = root.workspaces.map(ws => ws.address);
         }
       }
     }
@@ -218,7 +174,7 @@ Singleton {
 
   Process {
     id: getActiveWorkspace
-    command: ["hyprctl", "activeworkspace", "-j"]
+    command: [Host.hyprctl, "activeworkspace", "-j"]
     stdout: StdioCollector {
       id: activeWorkspaceCollector
       onStreamFinished: {

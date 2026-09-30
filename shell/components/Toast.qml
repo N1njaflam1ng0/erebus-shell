@@ -61,7 +61,8 @@ Item {
   anchors.right: parent.right
   anchors.top: parent.top
   implicitHeight: (Style.notifications.toastHeight * root.listCount) + (Style.spacing.p0 * root.listCount)
-  visible: root.monitorId === Config.primaryDisplay
+  readonly property bool isPrimary: root.monitorId === Config.primaryDisplay
+  visible: root.isPrimary
 
 
   ListView {
@@ -92,12 +93,15 @@ Item {
 
     Connections {
       target: Notifications
+      // Toasts only ever show on the primary monitor; the other copies keep
+      // an empty model instead of building cards nobody sees.
+      enabled: root.isPrimary
       function onPopupListChanged() {
         list.syncModel(Notifications.popupList)
       }
     }
 
-    Component.onCompleted: list.syncModel(Notifications.popupList)
+    Component.onCompleted: if (root.isPrimary) list.syncModel(Notifications.popupList)
 
     delegate: Rectangle {
       implicitHeight: Style.notifications.toastHeight

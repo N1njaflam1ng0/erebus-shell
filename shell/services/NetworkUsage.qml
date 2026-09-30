@@ -12,6 +12,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import qs
 import qs.services
 
 Singleton {
@@ -44,9 +45,18 @@ Singleton {
   Timer {
     // Fires immediately to take the baseline sample, then settles at the real
     // interval -- the trick ResourceUsage.qml uses.
+    // Only the system panel shows these numbers, so only sample while it is
+    // open. Reopening drops the stale baseline so the first tick is a fresh
+    // sample rather than one huge delta spanning the time it was closed.
     interval: 1
-    running: true
+    running: GlobalState.sysOpen
     repeat: true
+    onRunningChanged: {
+      if (running) {
+        root.previous = ({})
+        interval = 1
+      }
+    }
     onTriggered: {
       fileNetDev.reload()
 

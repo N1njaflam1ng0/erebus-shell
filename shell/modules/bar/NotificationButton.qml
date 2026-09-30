@@ -170,24 +170,26 @@ Button {
         height: 4
         radius: 4
         y: 10
-        SequentialAnimation on color {
-          loops: Animation.Infinite
-          running: root.active
-          ColorAnimation {
-            from: Style.colors.brightWhite
-            to: Style.colors.gray3
-            duration: Style.durations.slow
-            easing.type: Easing.Linear
-          }
-          ColorAnimation {
-            from: Style.colors.gray3
-            to: Style.colors.brightWhite
-            easing.type: Easing.Linear
-            duration: Style.durations.slow
-          }
-        }
-        color: Style.colors.brightBlack
+        // Lit while anything is stored, with one short pulse per new arrival.
+        // Not an endless loop: stored notifications survive restarts, so a
+        // loop would keep every bar window repainting at 60fps indefinitely.
+        color: root.active ? Style.colors.brightWhite : Style.colors.brightBlack
+        Behavior on color { ColorAnimation { duration: Style.durations.small; easing.type: Easing.OutQuad } }
         anchors.horizontalCenter: parent.horizontalCenter
+
+        SequentialAnimation {
+          id: pulse
+          NumberAnimation { target: dot; property: "scale"; to: 1.75; duration: Style.durations.small; easing.type: Easing.OutCubic }
+          NumberAnimation { target: dot; property: "scale"; to: 1; duration: Style.durations.medium; easing.type: Easing.InOutCubic }
+        }
+
+        property int count: Notifications.list.length
+        property int lastCount: 0
+        onCountChanged: {
+          if (count > lastCount) pulse.restart()
+          lastCount = count
+        }
+        Component.onCompleted: lastCount = count
       }
     }
   }

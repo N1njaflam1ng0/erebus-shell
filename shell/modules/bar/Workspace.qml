@@ -27,7 +27,6 @@ Button {
   required property bool isOccupied
   required property string workspaceAddress
   required property string activeWorkspaceAddress
-  readonly property bool isWorkspace: true
   required property var modelData
   required property string monitorId
   property bool active: activeWorkspaceAddress === workspaceAddress
@@ -42,11 +41,27 @@ Button {
       && (m?.specialWorkspace?.address ?? "") === root.workspaceAddress
   })
 
+  // Icon list for this workspace. Only reassigned when it actually changes:
+  // windowList is replaced on every Hyprland event, and handing the Repeater a
+  // fresh (if identical) array would rebuild every icon each time.
+  property var wsIcons: []
+  function refreshIcons(): void {
+    const next = Icons.getWsIcons(root.workspaceAddress)
+    if (JSON.stringify(next) !== JSON.stringify(root.wsIcons))
+      root.wsIcons = next
+  }
+  onWorkspaceAddressChanged: refreshIcons()
+  Component.onCompleted: refreshIcons()
+  Connections {
+    target: HyprlandData
+    function onWindowListChanged() { root.refreshIcons() }
+  }
+
   property int buttonSize: 26 * Config.scale
   property int iconSize: 16 * Config.scale
   property int calculatedWidth: {
     if (root.isOccupied) {
-      let iconCount = Icons.getWsIcons(workspaceAddress).length ?? 0;
+      let iconCount = root.wsIcons.length;
       return iconCount * (root.iconSize + Style.spacing.p3);
     } else {
       return root.iconSize + Style.spacing.p3;
@@ -136,7 +151,7 @@ Button {
       RowLayout {
         spacing: 0
         Repeater {
-          model: Icons.getWsIcons(root.workspaceAddress)
+          model: root.wsIcons
           Item {
             required property var modelData
             property bool urgent:  {
@@ -171,48 +186,46 @@ Button {
                 duration: Style.durations.normal
                 easing.type: Easing.InOutQuad
               }
-              // PropertyAnimation {
-              //   target: desaturatedIcon
-              //   property: "opacity"
-              //   from: 0.3
-              //   to: 1.0
-              //   duration: Style.durations.normal
-              //   easing.type: Easing.InOutQuad
-              // }
             }
 
-            MultiEffect {
+            // Blink target for both variants below.
+            Item {
               id: desaturatedIcon
               implicitWidth: root.iconSize
               implicitHeight: root.iconSize
               anchors.centerIn: parent
 
-              // grayscale scratch icons unless the scratch is active
-              saturation: (root.isSpecial && !root.specialActive) ? -1.0 : 0.0
-
-              Behavior on saturation {
-                NumberAnimation {
-                  duration: Style.durations.small
-                  easing.type: Easing.OutCubic
-                }
-              }
-              source: IconImage {
+              // Regular workspaces draw the icon directly. Only scratch icons
+              // need the MultiEffect (greyed out unless the scratch is shown),
+              // and an effect pass per icon on every bar is not free.
+              IconImage {
+                visible: !root.isSpecial
+                anchors.fill: parent
                 source: appIcon.modelData.icon
                 implicitSize: root.iconSize
               }
+
+              Loader {
+                active: root.isSpecial
+                anchors.fill: parent
+                sourceComponent: MultiEffect {
+                  saturation: root.specialActive ? 0.0 : -1.0
+                  Behavior on saturation {
+                    NumberAnimation {
+                      duration: Style.durations.small
+                      easing.type: Easing.OutCubic
+                    }
+                  }
+                  source: IconImage {
+                    source: appIcon.modelData.icon
+                    implicitSize: root.iconSize
+                  }
+                }
+              }
             }
-
-
           }
         }
       }
     }
   }
-  // states: [
-  //   State {
-  //     name: "hovered"
-  //     when: root.hovered
-  //     PropertyChanges { root.saturation: 0.0 }
-  //   }
-  // ]
 }

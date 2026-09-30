@@ -33,16 +33,16 @@ Item {
   // Constant height: nothing outside this item reflows while animating.
   implicitHeight: Style.launcher.height
 
-  // Exposed for shell.qml — now constant, no per-frame churn.
-  readonly property int launcherHeight: Style.launcher.height
-
   // The slide happens inside these bounds
   clip: true
 
   readonly property bool active: GlobalState.launcherOpen
     && GlobalState.launcherMonitorId === root.monitorId
 
-  property bool monitorIsFocused: Hyprland.focusedMonitor?.id === monitorId
+  // There is one launcher per monitor, but only the one on launcherMonitorId
+  // is ever shown. The others skip the search entirely rather than filtering
+  // and rebuilding a hidden list on every keystroke.
+  readonly property bool owner: GlobalState.launcherMonitorId === root.monitorId
 
   // Only render while on-screen or mid-transition
   visible: launcher.y > -Style.launcher.height
@@ -111,14 +111,18 @@ Item {
   // re-read them on entering the mode rather than caching at startup.
   Connections {
     target: GlobalState
+    function onLauncherMonitorIdChanged() {
+      if (root.owner) root.evaluateQuery();
+    }
     function onLauncherModeChanged() {
+      if (!root.owner) return;
       if (GlobalState.launcherMode === "clipboard") LauncherData.refreshClipboard();
       else if (GlobalState.launcherMode === "wallpaper") LauncherData.refreshWallpapers();
       else if (GlobalState.launcherMode === "display") LauncherData.refreshMonitors();
       root.evaluateQuery();
     }
     function onSearchQueryChanged() {
-      root.evaluateQuery();
+      if (root.owner) root.evaluateQuery();
     }
   }
 
@@ -235,10 +239,11 @@ Item {
       // TODO: Improve
       property string desc: launcherList?.list?.currentItem?.name ?? "Undefined"
       onDescChanged: {
-        if (typeof desc === "string" && desc !== "Undefined") { ContextData.launcherDesc = desc }
+        if (root.owner && typeof desc === "string" && desc !== "Undefined") { ContextData.launcherDesc = desc }
       }
 
       property var sourceData: {
+        if (!root.owner) return []
         const s = GlobalState.launcherMode
         if (s === "notifications") {
           const q = GlobalState.searchQuery.replace(`${Config.menuPrefix}/notifications`, "")
@@ -274,7 +279,7 @@ Item {
       }
 
       onSourceDataChanged: {
-        GlobalState.matchCount = layout.sourceData.length
+        if (root.owner) GlobalState.matchCount = layout.sourceData.length
       }
 
       function onAccept(entry) {
