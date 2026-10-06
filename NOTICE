@@ -3,3 +3,7 @@ erebus-shell is licensed under the GNU General Public License v3 (see LICENSE).
 The QML under shell/ is adapted from roosta/dotfiles
 (https://github.com/roosta/dotfiles), GPLv3, by Daniel Berg. Per-file headers
 credit the original where it applies.
+
+The clipboard panel, the calendar setup form (CalDAV and Google calendars),
+`erebus-restart` and their tests are adapted from Chrisser1/nyx
+(https://github.com/Chrisser1/nyx), GPLv3.

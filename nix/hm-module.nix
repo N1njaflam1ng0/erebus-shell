@@ -18,6 +18,7 @@
       wallpaperDir = cfg.wallpaper.directory;
       defaultWallpaper = cfg.wallpaper.default;
       screenshotDir = cfg.screenshotDirectory;
+      clipboardMaxItems = cfg.clipboard.maxItems;
     };
 
     shell = import ./_package {
@@ -103,6 +104,12 @@
         spdif = sink "S/PDIF";
       };
 
+      clipboard.maxItems = mkOption {
+        type = types.ints.positive;
+        default = 500;
+        description = "Clipboard history entries kept; pins do not count.";
+      };
+
       autostart = mkOption {
         type = types.bool;
         default = true;
@@ -185,6 +192,32 @@
       xdg.configFile."erebus-shell/keybinds.json" = lib.mkIf cfg.keybinds.enable {
         text = keybinds.json {inherit (cfg.keybinds) modifier binds;};
       };
+
+      assertions = [
+        {
+          assertion = !config.services.cliphist.enable;
+          message = "programs.erebus-shell records clipboard history itself; disable services.cliphist.";
+        }
+      ];
+
+      # The same watchers services.cliphist runs, but storing through
+      # erebus-clipboard so entries get arrival times.
+      systemd.user.services = lib.genAttrs ["erebus-clipboard" "erebus-clipboard-images"] (name: {
+        Unit = {
+          Description = "erebus-shell clipboard history (${name})";
+          PartOf = [config.wayland.systemd.target];
+          After = [config.wayland.systemd.target];
+        };
+        Service = {
+          ExecStart = lib.concatStringsSep " " (
+            ["${pkgs.wl-clipboard}/bin/wl-paste"]
+            ++ lib.optionals (name == "erebus-clipboard-images") ["--type" "image"]
+            ++ ["--watch" (lib.getExe helpers.clipboard) "store"]
+          );
+          Restart = "on-failure";
+        };
+        Install.WantedBy = [config.wayland.systemd.target];
+      });
 
       # Feeds the media panel's visualiser. `raw` output on stdout is what
       # services/AudioData.qml parses.

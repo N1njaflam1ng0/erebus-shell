@@ -70,14 +70,32 @@
     done
     [ $missing -eq 0 ]
   '';
-in
-  pkgs.writeShellApplication {
+  quickshell = exe pkgs.quickshell;
+
+  shell = pkgs.writeShellApplication {
     name = "erebus-shell";
+    runtimeInputs = [pkgs.jq];
     # Qt6 resolves icon names through qt6ct, but the session-wide value is
     # qt5ct, which leaves this process with no icon theme at all and renders
     # blank tiles in the tray and launcher.
     runtimeEnv.QT_QPA_PLATFORMTHEME = "qt6ct";
     text = ''
-      exec ${pkgs.quickshell}/bin/quickshell -p ${src} "$@"
+      # `restart` stops the running shell -- whichever build it is, so it works
+      # right after a rebuild -- then starts this one detached.
+      if [ "''${1:-}" = restart ]; then
+        for pid in $(${quickshell} list --all --json | jq -r '.[] | select(.config_path | test("erebus-shell-src")) | .pid'); do
+          ${quickshell} kill --pid "$pid" || true
+        done
+        # Let the old shell release the notification service.
+        sleep 1
+        exec ${quickshell} -p ${src} -d
+      fi
+      exec ${quickshell} -p ${src} "$@"
     '';
+  };
+in
+  pkgs.symlinkJoin {
+    name = "erebus-shell";
+    paths = [shell (pkgs.writeShellScriptBin "erebus-restart" "exec ${exe shell} restart")];
+    meta.mainProgram = "erebus-shell";
   }

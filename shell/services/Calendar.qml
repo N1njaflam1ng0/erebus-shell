@@ -1,7 +1,7 @@
 // Month grid + Google Calendar events for modules/calendar/CalendarPanel.qml.
 //
-// Events come from the `erebus-calendar` helper (scripts/erebus-calendar.sh
-// and nix/_helpers/default.nix), which reads Evolution Data Server and emits JSON.
+// Events come from the `erebus-calendar` helper (scripts/erebus-calendar.sh),
+// which reads Evolution Data Server and emits JSON.
 // Adding the Google account is a one-time step -- see `erebus-calendar auth`.
 
 pragma Singleton
@@ -109,7 +109,7 @@ Singleton {
   }
 
   // Natural-language quick-add, e.g. "lunch with Sam tomorrow 12pm". The helper
-  // resolves which calendar to write to; see erebus-calendar in helpers.nix.
+  // resolves which calendar to write to; see target_name() in scripts/erebus-calendar-backend.py.
   function addEvent(text) {
     const t = (text ?? "").trim()
     if (!t || addProc.running) return
@@ -159,6 +159,7 @@ Singleton {
       // has been added yet, which is what tells `available` apart from an
       // authenticated but genuinely empty month.
       root.available = code === 0
+      root.refreshed = true
       root.loading = false
       if (root.pendingRefresh) {
         root.pendingRefresh = false
@@ -185,6 +186,116 @@ Singleton {
   Process {
     id: openProc
     command: [Host.calendar, "open"]
+  }
+
+  // Account setup, for modules/calendar/CalendarSetup.qml. The form shows on
+  // request, and by itself while there is no calendar at all.
+  property bool setupOpen: false
+  property bool setupDismissed: false
+  property bool refreshed: false
+  property bool addingCalendar: false
+  property string calendarError: ""
+  property string pendingPassword: ""
+  signal calendarAdded()
+
+  readonly property bool setupShown: setupOpen || (!available && refreshed && !setupDismissed)
+
+  function openSetup() {
+    root.refreshGoogle()
+    root.calendarError = ""
+    root.setupOpen = true
+  }
+
+  function closeSetup() {
+    root.setupOpen = false
+    root.setupDismissed = true
+  }
+
+  // The Google account's calendars, shared ones included, for the setup form.
+  // [{ name, path, added, primary }]
+  property var googleCalendars: []
+  property bool googleBusy: false
+  property string googleError: ""
+
+  function refreshGoogle() {
+    if (googleProc.running) return
+    root.googleError = ""
+    googleProc.command = [Host.calendar, "google-calendars"]
+    googleProc.running = true
+  }
+
+  // Adds or removes one of them, then shows the result in the list and the grid.
+  function toggleGoogle(calendar) {
+    if (googleBusy || calendar.primary) return
+    root.googleBusy = true
+    root.googleError = ""
+    googleProc.command = calendar.added
+      ? [Host.calendar, "remove-google", calendar.path]
+      : [Host.calendar, "add-google", calendar.path, calendar.name]
+    googleProc.running = true
+  }
+
+  Process {
+    id: googleProc
+    stdout: StdioCollector { id: googleOut }
+    stderr: StdioCollector { id: googleErr }
+    onExited: code => {
+      const listing = command[1] === "google-calendars"
+      root.googleBusy = false
+      if (code !== 0) {
+        root.googleError = googleErr.text.trim().split("\n").pop() || "Could not reach Google"
+        return
+      }
+      if (listing) {
+        root.googleCalendars = JSON.parse(googleOut.text)
+      } else {
+        root.refresh()
+        root.refreshGoogle()
+      }
+    }
+  }
+
+  // Google sign-in lives in Evolution; re-check once it closes.
+  function openAccounts() { accountsProc.running = true }
+
+  // The password goes over stdin, never onto a command line.
+  function addCalDav(name, url, user, password) {
+    if (addCalDavProc.running) return
+    root.calendarError = ""
+    root.addingCalendar = true
+    root.pendingPassword = password
+    addCalDavProc.command = [Host.calendar, "add-caldav", name, url, user]
+    addCalDavProc.running = true
+  }
+
+  Process {
+    id: accountsProc
+    command: [Host.calendar, "auth"]
+    onExited: {
+      root.refresh()
+      root.refreshGoogle()
+    }
+  }
+
+  Process {
+    id: addCalDavProc
+    stdinEnabled: true
+    stderr: StdioCollector { id: calDavErr }
+    onStarted: {
+      write(`${root.pendingPassword}\n`)
+      root.pendingPassword = ""
+      stdinEnabled = false
+    }
+    onExited: code => {
+      root.addingCalendar = false
+      if (code === 0) {
+        root.setupOpen = false
+        root.calendarAdded()
+        root.refresh()
+      } else {
+        root.calendarError = calDavErr.text.trim().split("\n").pop() || "Could not add the calendar"
+      }
+    }
   }
 
   Timer {

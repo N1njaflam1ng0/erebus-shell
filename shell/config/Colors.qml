@@ -51,4 +51,6 @@ Singleton {
   // a palette with holes in it is worse than an unused name.
   readonly property string fg: root.white
   readonly property string accent: root.magenta
+  // Text and glyphs drawn on an accent fill.
+  readonly property string onAccent: root.black
 }

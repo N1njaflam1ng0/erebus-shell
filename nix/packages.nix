@@ -21,6 +21,7 @@
       wallpaperDir = pkgs.emptyDirectory;
       defaultWallpaper = "";
       screenshotDir = "/tmp";
+      clipboardMaxItems = 500;
     };
   in {
     _module.args.erebusHelpers = helpers;

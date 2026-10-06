@@ -7,8 +7,8 @@
     ...
   }: {
     options.programs.erebus-shell.calendar.enable = lib.mkEnableOption ''
-      Evolution Data Server for the bar's calendar panel. Accounts (Google etc.)
-      are added through Evolution: `erebus-calendar auth`
+      Evolution Data Server for the bar's calendar panel. Accounts are added
+      from the panel: Google through Evolution's sign-in, CalDAV by address
     '';
 
     config = lib.mkIf config.programs.erebus-shell.calendar.enable {

@@ -1,0 +1,48 @@
+# erebus-calendar against the fake backend and Evolution in stubs/.
+set -euo pipefail
+
+fail() { echo "FAIL: $*" >&2; exit 1; }
+
+export STUB_DIR=$PWD/stub
+mkdir -p "$STUB_DIR"
+
+if erebus-calendar bogus 2>/dev/null; then fail "bogus accepted"; fi
+if erebus-calendar add-caldav Home https://x 2>/dev/null; then fail "add-caldav without a user accepted"; fi
+if erebus-calendar caldav-config Home https://x 2>/dev/null; then fail "caldav-config without a user accepted"; fi
+
+touch "$STUB_DIR/no-calendar"
+if out=$(erebus-calendar events 2026-10-01 2026-10-31); then fail "events succeeded without a calendar"; fi
+[ "$out" = '[]' ] || fail "events prints an empty list without a calendar: $out"
+
+# The password travels on stdin, so it never reaches an argument list.
+printf 's3cret\n' | erebus-calendar add-caldav Home https://cloud.example.org/dav/ me
+[ "$(cat "$STUB_DIR/password")" = s3cret ] || fail "password on stdin"
+[ "$(cat "$STUB_DIR/calls")" = "add-caldav Home https://cloud.example.org/dav/ me" ] || fail "arguments: $(cat "$STUB_DIR/calls")"
+if grep -q s3cret "$STUB_DIR/calls"; then fail "password leaked into the arguments"; fi
+[ "$(erebus-calendar events 2026-10-01 2026-10-31)" = '[]' ] || fail "events after add"
+
+touch "$STUB_DIR/caldav-fails" "$STUB_DIR/no-calendar"
+if echo pw | erebus-calendar add-caldav Home https://x/ me 2>/dev/null; then fail "failed add-caldav succeeded"; fi
+
+rm "$STUB_DIR/calls"
+erebus-calendar auth
+[ "$(cat "$STUB_DIR/calls")" = "evolution -c calendar" ] || fail "auth starts Evolution's calendar"
+
+# Google calendars are listed and added through the backend.
+printf '[{"name":"Family","path":"/caldav/v2/x@group.calendar.google.com/events","added":false,"primary":false}]' > "$STUB_DIR/google.json"
+[ "$(erebus-calendar google-calendars | jq -r '.[0].name')" = Family ] || fail "google calendars listed"
+rm -f "$STUB_DIR/calls"
+erebus-calendar add-google /caldav/v2/x@group.calendar.google.com/events Family
+erebus-calendar remove-google /caldav/v2/x@group.calendar.google.com/events
+[ "$(cat "$STUB_DIR/calls")" = "$(printf 'add-google /caldav/v2/x@group.calendar.google.com/events Family\nremove-google /caldav/v2/x@group.calendar.google.com/events')" ] || fail "google calls: $(cat "$STUB_DIR/calls")"
+if erebus-calendar add-google /only/a/path 2>/dev/null; then fail "add-google without a name accepted"; fi
+
+# GNOME Calendar needs a time zone directory, which a NixOS session may not set.
+rm "$STUB_DIR/calls"
+erebus-calendar open
+[ "$(cat "$STUB_DIR/calls")" = "gnome-calendar TZDIR=/etc/zoneinfo" ] || fail "open sets TZDIR: $(cat "$STUB_DIR/calls")"
+rm "$STUB_DIR/calls"
+TZDIR=/custom erebus-calendar open
+[ "$(cat "$STUB_DIR/calls")" = "gnome-calendar TZDIR=/custom" ] || fail "open keeps an existing TZDIR"
+
+echo "calendar helper tests passed"

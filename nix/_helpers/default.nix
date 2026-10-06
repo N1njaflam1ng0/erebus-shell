@@ -9,6 +9,7 @@
   defaultWallpaper,
   screenshotDir,
   sinks,
+  clipboardMaxItems,
 }: let
   script = import ./script.nix {inherit pkgs;};
 
@@ -69,7 +70,9 @@ in rec {
   };
   kbdBacklight = script "kbd-backlight" [pkgs.brightnessctl pkgs.coreutils hyprland] {};
   brightness = script "brightness" [pkgs.brightnessctl hyprland] {};
-  clipboard = script "clipboard" (with pkgs; [cliphist wl-clipboard]) {};
+  clipboard = script "clipboard" (with pkgs; [cliphist wl-clipboard jq gawk gnugrep coreutils findutils diffutils]) {
+    EREBUS_CLIPBOARD_MAX_ITEMS = toString clipboardMaxItems;
+  };
   calc = script "calc" (with pkgs; [libqalculate wl-clipboard]) {EREBUS_QALC_CONFIG = "${qalcConfig}";};
   calendar = script "calendar" (with pkgs; [calendarBackend evolution gnome-calendar]) {};
   monitors = script "monitors" (with pkgs; [jq coreutils libnotify wdisplays hyprland]) {};

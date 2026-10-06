@@ -45,11 +45,18 @@ Singleton {
 
   component Calendar: QtObject {
     readonly property int width: 380 * Config.scale
-    readonly property int height: 420 * Config.scale
+    readonly property int height: 500 * Config.scale
     // One cell of the 7x6 month grid.
     readonly property int cellSize: 40 * Config.scale
   }
   readonly property Calendar calendar: Calendar { }
+
+  component Clipboard: QtObject {
+    readonly property int width: 1040 * Config.scale
+    readonly property int height: 640 * Config.scale
+    readonly property int rowHeight: 52 * Config.scale
+  }
+  readonly property Clipboard clipboard: Clipboard { }
 
   component Wifi: QtObject {
     readonly property int width: 320 * Config.scale

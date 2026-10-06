@@ -1,7 +1,7 @@
 # erebus-shell
 
 The Quickshell bar for [erebus](https://github.com/N1njaFlam1ng0/erebus): bar,
-launcher (apps, calculator, wallpapers, clipboard), calendar, media, Wi-Fi,
+launcher (apps, calculator, wallpapers), clipboard history, calendar, media, Wi-Fi,
 displays, tray, notifications and OSDs, plus the `erebus-*` helpers it shells
 out to. Built for Hyprland with a Lua config.
 
@@ -31,12 +31,16 @@ programs.erebus-shell = {
 
 The module appends the shell's keybinds and its autostart to
 `wayland.windowManager.hyprland.extraConfig`; see `keybinds.*` and `autostart`.
+It also records clipboard history itself (`erebus-clipboard` user services), so
+leave `services.cliphist` off.
+
+After a rebuild, `erebus-restart` swaps the running bar for the new build.
 
 ## Develop
 
 ```sh
 nix develop -c qs -p shell     # hot-reloads; helpers resolve from PATH
-nix flake check                # builds the shell, shellchecks helpers, tests keybinds
+nix flake check                # builds the shell, shellchecks helpers, runs the tests
 ```
 
 To try changes in erebus without pushing:
