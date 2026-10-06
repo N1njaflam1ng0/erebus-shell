@@ -36,6 +36,7 @@
       readonly property string wallpaper: "${exe helpers.wallpaper}"
       readonly property string calendar: "${exe helpers.calendar}"
       readonly property string calc: "${exe helpers.calc}"
+      readonly property string bitwarden: "${exe helpers.bitwarden}"
       readonly property string brightnessctl: "${pkgs.brightnessctl}/bin/brightnessctl"
       readonly property string kbdBacklight: "${exe helpers.kbdBacklight}"
       readonly property string sysmon: "${pkgs.btop}/bin/btop"

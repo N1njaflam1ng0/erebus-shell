@@ -92,6 +92,14 @@ Item {
     launcherList.list.decrementCurrentIndex()
   }
 
+  // The panels a menu card opens in place of a launcher mode.
+  function openPanel(name) {
+    if (name === "bitwarden") {
+      VaultData.hint = ""
+      GlobalState.openBitwarden(root.monitorId)
+    }
+  }
+
   // The calculator is the one source driven by the query rather than the mode:
   // in calc mode every keystroke is an expression, in apps mode only the ones
   // that look like maths, so searching for "1password" never spawns qalc.
@@ -117,6 +125,7 @@ Item {
     function onLauncherModeChanged() {
       if (!root.owner) return;
       if (GlobalState.launcherMode === "wallpaper") LauncherData.refreshWallpapers();
+      else if (GlobalState.launcherMode === "bitwarden") VaultData.refresh();
       else if (GlobalState.launcherMode === "display") LauncherData.refreshMonitors();
       root.evaluateQuery();
     }
@@ -255,6 +264,9 @@ Item {
         } else if (s === "wallpaper") {
           const q = GlobalState.searchQuery.replace(`${Config.menuPrefix}/wallpaper`, "")
           return Fuzzy.query(q, LauncherData.wallpaperData)
+        } else if (s === "bitwarden") {
+          const q = GlobalState.searchQuery.replace(`${Config.menuPrefix}/bitwarden`, "")
+          return LauncherData.setupEntries(q)
         } else if (s === "calc") {
           return LauncherData.calcData
         } else {
@@ -270,12 +282,24 @@ Item {
 
       function onAccept(entry) {
         const s = GlobalState.launcherMode
+        if (entry.panel !== undefined) {
+          root.openPanel(entry.panel)
+          return
+        }
         if (s === "notifications") {
           Notifications.attemptInvokeAction(entry.notificationId, "default")
           GlobalState.closeLauncher()
         } else if (s === "menu") {
           GlobalState.launcherMode = entry.mode
           GlobalState.searchQuery = ""
+        } else if (s === "bitwarden" && entry.loginEmail !== undefined) {
+          if (entry.loginEmail === "") return
+          GlobalState.closeLauncher()
+          LauncherData.loginVault(root.monitorId, entry.loginEmail)
+        } else if (s === "bitwarden" && entry.setRegion !== undefined) {
+          LauncherData.vaultRegion = entry.setRegion
+          // A pasted server URL is not an email, so clear it for the next step.
+          if (entry.setRegion.startsWith("http")) GlobalState.searchQuery = ""
         } else if (s === "power"
           || s === "display"
           || s === "audio"

@@ -16,6 +16,7 @@ in {
     (command "MOD + SHIFT + S" "erebus-screenshot region" "Screenshot a region")
     (shortcut "MOD + U" "togglePower" "Power menu")
     (shortcut "MOD + V" "toggleClipboard" "Clipboard history")
+    (shortcut "MOD + B" "toggleBitwarden" "Bitwarden")
     (shortcut "MOD + W" "toggleWallpaper" "Wallpapers")
     (shortcut "MOD + N" "toggleWifi" "Wi-Fi")
     (shortcut "MOD + I" "toggleSystem" "System panel")

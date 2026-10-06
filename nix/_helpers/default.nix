@@ -10,8 +10,22 @@
   screenshotDir,
   sinks,
   clipboardMaxItems,
+  bitwardenClear,
 }: let
   script = import ./script.nix {inherit pkgs;};
+
+  # rbw asks for the master password and 2FA codes through pinentry. pinentry-qt
+  # is Qt6, so it needs the qt6ct platform theme to match the rest of the desktop.
+  pinentry = pkgs.symlinkJoin {
+    name = "erebus-pinentry";
+    paths = [pkgs.pinentry-qt];
+    nativeBuildInputs = [pkgs.makeWrapper];
+    postBuild = ''
+      wrapProgram $out/bin/pinentry \
+        --set QT_QPA_PLATFORMTHEME qt6ct \
+        --prefix QT_PLUGIN_PATH : ${pkgs.kdePackages.qt6ct}/lib/qt-6/plugins
+    '';
+  };
 
   # Disables qalc's mixed-unit output and its automatic exchange-rate refresh.
   qalcConfig = pkgs.writeTextDir "qalculate/qalc.cfg" ''
@@ -72,6 +86,13 @@ in rec {
   brightness = script "brightness" [pkgs.brightnessctl hyprland] {};
   clipboard = script "clipboard" (with pkgs; [cliphist wl-clipboard jq gawk gnugrep coreutils findutils diffutils]) {
     EREBUS_CLIPBOARD_MAX_ITEMS = toString clipboardMaxItems;
+    EREBUS_BITWARDEN = lib.getExe bitwarden;
+  };
+  bitwarden = script "bitwarden" (with pkgs; [rbw jq wl-clipboard wtype libnotify coreutils findutils gnugrep]) {
+    EREBUS_BITWARDEN_CLEAR = toString bitwardenClear;
+    # Typing waits this long for focus to return to the window the panel closed over.
+    EREBUS_BITWARDEN_TYPE_DELAY = "0.25";
+    EREBUS_BITWARDEN_PINENTRY = "${pinentry}/bin/pinentry";
   };
   calc = script "calc" (with pkgs; [libqalculate wl-clipboard]) {EREBUS_QALC_CONFIG = "${qalcConfig}";};
   calendar = script "calendar" (with pkgs; [calendarBackend evolution gnome-calendar]) {};
@@ -82,5 +103,5 @@ in rec {
     EREBUS_WALLPAPER_THUMBS = "${thumbs}";
   };
 
-  all = [power screenshot colorpicker audioSwitch kbdBacklight brightness clipboard calc calendar monitors wallpaper];
+  all = [power screenshot colorpicker audioSwitch kbdBacklight brightness clipboard calc calendar monitors wallpaper bitwarden];
 }

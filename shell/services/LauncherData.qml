@@ -16,6 +16,7 @@ pragma Singleton
 import Quickshell
 import Quickshell.Io
 import QtQuick
+import qs
 import qs.services
 import qs.config
 import qs.utils
@@ -198,6 +199,72 @@ Singleton {
         }
         root.wallpaperEntries = out;
       }
+    }
+  }
+
+  // ---- Bitwarden -----------------------------------------------------------
+  // The vault itself lives in VaultData and modules/bitwarden. The launcher
+  // only hosts the login form, for a vault that is not set up yet.
+
+  // Before login the search box is the form: type the email, pick a region
+  // (or paste a server URL and press Enter on its card), then Enter on the
+  // login card. The password and 2FA code are asked for in pinentry.
+  readonly property bool vaultNeedsSetup: VaultData.needsSetup
+  property string vaultRegion: "com"
+  readonly property var vaultRegions: [
+    { id: "com", name: "Bitwarden.com", comment: "United States" },
+    { id: "eu", name: "Bitwarden.eu", comment: "European Union" }
+  ]
+
+  function setupEntries(query) {
+    const q = query.trim();
+    const isUrl = /^https?:\/\//.test(q);
+    const valid = !isUrl && /^[^@\s]+@[^@\s]+$/.test(q);
+    const region = root.vaultRegions.find(r => r.id === root.vaultRegion)?.name ?? root.vaultRegion;
+    const entries = [{
+      id: "erebus-bw-login",
+      name: valid ? `Log in as ${q}` : "Type your email above",
+      genericName: region,
+      comment: valid ? "Asks for your password in a dialog" : "Then press Enter here",
+      iconId: "dialog-password",
+      loginEmail: valid ? q : ""
+    }];
+    for (const r of root.vaultRegions) {
+      entries.push({
+        id: `erebus-bw-region-${r.id}`,
+        name: `${root.vaultRegion === r.id ? "● " : "○ "}${r.name}`,
+        genericName: "Region",
+        comment: r.comment,
+        iconId: "network-server",
+        setRegion: r.id
+      });
+    }
+    if (isUrl) {
+      entries.push({
+        id: "erebus-bw-region-custom",
+        name: `${root.vaultRegion === q ? "● " : "○ "}Self-hosted`,
+        genericName: "Region",
+        comment: q,
+        iconId: "network-server",
+        setRegion: q
+      });
+    }
+    return entries;
+  }
+
+  function loginVault(monitorId, email) {
+    loginProc.monitorId = monitorId;
+    loginProc.command = [Host.bitwarden, "setup", email, root.vaultRegion];
+    loginProc.running = true;
+  }
+
+  Process {
+    id: loginProc
+    property string monitorId: ""
+    onExited: code => {
+      if (code !== 0) return;
+      VaultData.refresh();
+      GlobalState.openBitwarden(loginProc.monitorId);
     }
   }
 

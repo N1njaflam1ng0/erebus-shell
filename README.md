@@ -1,9 +1,9 @@
 # erebus-shell
 
 The Quickshell bar for [erebus](https://github.com/N1njaFlam1ng0/erebus): bar,
-launcher (apps, calculator, wallpapers), clipboard history, calendar, media, Wi-Fi,
-displays, tray, notifications and OSDs, plus the `erebus-*` helpers it shells
-out to. Built for Hyprland with a Lua config.
+launcher (apps, calculator, wallpapers), clipboard history, a Bitwarden vault
+(rbw), calendar, media, Wi-Fi, displays, tray, notifications and OSDs, plus the
+`erebus-*` helpers it shells out to. Built for Hyprland with a Lua config.
 
 ## Use
 

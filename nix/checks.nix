@@ -28,6 +28,16 @@
     stub = name: pkgs.writeShellScriptBin name (builtins.readFile ./_helpers/stubs/${name}.sh);
     stubbed = import ./_helpers/script.nix {inherit pkgs;};
     calendarStubbed = stubbed "calendar" (map stub ["erebus-calendar-backend" "evolution" "gnome-calendar"]) {};
+    bitwardenStubbed = stubbed "bitwarden" (map stub ["rbw" "wl-copy" "wl-paste" "notify-send" "wtype"] ++ (with pkgs; [jq coreutils findutils gnugrep])) {
+      EREBUS_BITWARDEN_CLEAR = "1";
+      EREBUS_BITWARDEN_PINENTRY = "/stub/pinentry";
+      EREBUS_BITWARDEN_TYPE_DELAY = "0";
+    };
+    # The real clipboard helper with an erebus-bitwarden that only logs its arguments.
+    clipboardStubbed = stubbed "clipboard" (with pkgs; [cliphist wl-clipboard jq gawk gnugrep coreutils findutils diffutils]) {
+      EREBUS_CLIPBOARD_MAX_ITEMS = "500";
+      EREBUS_BITWARDEN = pkgs.writeShellScript "fake-bitwarden" "echo \"$@\" >> \"$BW_CALLS\"";
+    };
 
     # Runs tests/<name>/shell.qml headless against a copy of shell/; it prints PASS.
     qmlTest = name: {
@@ -52,7 +62,7 @@
 
       helpers = pkgs.runCommand "erebus-helpers-test" {nativeBuildInputs = erebusHelpers.all;} ''
         # Every helper rejects an unknown verb with its usage line and exit 2.
-        for h in power audio-switch brightness calc clipboard calendar monitors wallpaper; do
+        for h in power audio-switch brightness calc clipboard calendar monitors wallpaper bitwarden; do
           set +e
           HOME=$PWD XDG_STATE_HOME=$PWD/state XDG_RUNTIME_DIR=$PWD erebus-$h no-such-verb 2> err
           rc=$?
@@ -107,7 +117,7 @@
 
       # Against a real cliphist database.
       clipboard = pkgs.runCommand "erebus-clipboard-test" {
-        nativeBuildInputs = [erebusHelpers.clipboard pkgs.imagemagick pkgs.jq];
+        nativeBuildInputs = [clipboardStubbed pkgs.imagemagick pkgs.jq];
       } ''
         bash ${./_helpers/clipboard-test.sh}
         touch $out
@@ -132,6 +142,31 @@
           printf 'https://example.com' | erebus-clipboard store
           magick -size 1362x766 gradient:red-blue image.png
           erebus-clipboard store < image.png
+        '';
+      };
+
+      bitwarden = pkgs.runCommand "erebus-bitwarden-test" {
+        nativeBuildInputs = [bitwardenStubbed pkgs.jq (stub "wl-copy") (stub "rbw")];
+      } ''
+        bash ${./_helpers/bitwarden-test.sh}
+        touch $out
+      '';
+
+      bitwarden-launcher = qmlTest "bitwarden" {
+        setup = ''
+          export STUB_DIR=$PWD/stub
+          mkdir -p $STUB_DIR
+          cp --no-preserve=mode ${../tests/bitwarden/list.json} $STUB_DIR/list.json
+          mkdir -p $STUB_DIR/secrets
+          printf hunter2 > $STUB_DIR/secrets/u1.password
+          printf chris > $STUB_DIR/secrets/u1.username
+          mkdir -p $STUB_DIR/cfg
+          echo me@example.com > $STUB_DIR/cfg/email
+          export XDG_DATA_HOME=$HOME/.local/share
+          mkdir -p $HOME/.local/share/rbw
+          touch "$XDG_DATA_HOME/rbw/me@example.com.json"
+          touch $STUB_DIR/unlocked
+          substituteInPlace cfg/config/Host.qml --replace-fail '"erebus-bitwarden"' '"${lib.getExe bitwardenStubbed}"'
         '';
       };
 

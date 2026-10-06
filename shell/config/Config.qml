@@ -82,6 +82,15 @@ Singleton {
       iconId: "preferences-desktop-display"
     },
     {
+      id: "erebus-mode-bitwarden",
+      name: "Bitwarden",
+      comment: "Copy or type passwords, usernames and TOTP codes from the vault",
+      panel: "bitwarden",
+      genericName: "Menu",
+      categories: ["Security", "Utility"],
+      iconId: "dialog-password"
+    },
+    {
       id: "erebus-mode-wallpaper",
       name: "Wallpaper",
       comment: "Set the wallpaper on every monitor, still or animated",

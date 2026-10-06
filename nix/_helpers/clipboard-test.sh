@@ -56,7 +56,16 @@ erebus-clipboard delete "$(list | jq -r '.[0].id')"
 [ "$(list)" = "[]" ] || fail "delete"
 [ ! -s "$XDG_STATE_HOME/erebus/clipboard/seen.tsv" ] || fail "stale times kept"
 
-# Ids that are neither cliphist numbers nor pins are refused.
+# What erebus-bitwarden copied shows as a row without the secret, and copies again from the vault.
+export BW_CALLS=$PWD/bw-calls
+printf '%s\t%s\t%s\t%s\n' 1700000000 u1 password GitHub > "$XDG_STATE_HOME/erebus/clipboard/vault"
+[ "$(list | jq -c '.[0] | [.id, .kind, .pinned, .time, .preview]')" = '["vault","text",false,1700000000,"Bitwarden: GitHub (password)"]' ] || fail "vault row: $(list)"
+erebus-clipboard text vault | grep -q "not kept" || fail "vault text"
+erebus-clipboard copy vault
+[ "$(cat "$BW_CALLS")" = "copy u1 password GitHub" ] || fail "vault copy: $(cat "$BW_CALLS")"
+expect_status 1 erebus-clipboard pin vault
+erebus-clipboard delete vault
+[ "$(list)" = "[]" ] || fail "vault row deleted"
 expect_status 1 erebus-clipboard copy vault
 
 # A history larger than a pipe buffer still records arrival times.

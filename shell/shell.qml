@@ -18,6 +18,7 @@ import qs.modules.bar
 import qs.modules.launcher
 import qs.modules.calendar
 import qs.modules.clipboard
+import qs.modules.bitwarden
 import qs.modules.network
 import qs.modules.media
 import qs.modules.system
@@ -51,6 +52,17 @@ ShellRoot {
     name: "toggleClipboard"
     description: "Toggles the clipboard history"
     onPressed: GlobalState.toggleClipboard(Hyprland.focusedMonitor?.name ?? Config.primaryDisplay)
+  }
+
+  GlobalShortcut { // qmllint disable unresolved-type
+    name: "toggleBitwarden"
+    description: "Toggles the Bitwarden vault panel"
+    onPressed: {
+      // Taken before the panel opens, to suggest entries for this window.
+      const w = HyprlandData.activeTopLevel
+      VaultData.hint = w ? `${w.title ?? ""} ${w.class ?? ""}` : ""
+      GlobalState.toggleBitwarden(Hyprland.focusedMonitor?.name ?? Config.primaryDisplay)
+    }
   }
 
   Variants {
@@ -109,6 +121,7 @@ ShellRoot {
             || (GlobalState.sysOpen && GlobalState.sysMonitorId === scope.monitorId)
             || (GlobalState.mediaOpen && GlobalState.mediaMonitorId === scope.monitorId)
             || (GlobalState.clipboardOpen && GlobalState.clipboardMonitorId === scope.monitorId)
+            || (GlobalState.bitwardenOpen && GlobalState.bitwardenMonitorId === scope.monitorId)
           // Deliberately empty, for every overlay. Hyprland fires `cleared`
           // immediately after the grab activates, so closing from here shuts
           // the panel the moment it opens. Click-outside is handled instead by
@@ -193,9 +206,10 @@ ShellRoot {
           states: [
             State {
               name: "open"
-              // Only the monitor the launcher/clipboard/tray menu is actually on dims.
+              // Only the monitor a centred overlay or the tray menu is actually on dims.
               when: ((GlobalState.launcherOpen && GlobalState.launcherMonitorId === scope.monitorId)
                   || (GlobalState.clipboardOpen && GlobalState.clipboardMonitorId === scope.monitorId)
+                  || (GlobalState.bitwardenOpen && GlobalState.bitwardenMonitorId === scope.monitorId)
                   || (GlobalState.trayMenuOpen && Hyprland.focusedMonitor?.name === scope.monitorId))
                 && scope.windows.length > 0
               PropertyChanges { content.color: Functions.transparentize("#000", 0.7) }
@@ -238,6 +252,10 @@ ShellRoot {
         }
 
         ClipboardPanel {
+          monitorId: scope.monitorId
+        }
+
+        BitwardenPanel {
           monitorId: scope.monitorId
         }
 

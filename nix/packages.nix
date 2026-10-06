@@ -22,6 +22,7 @@
       defaultWallpaper = "";
       screenshotDir = "/tmp";
       clipboardMaxItems = 500;
+      bitwardenClear = 30;
     };
   in {
     _module.args.erebusHelpers = helpers;

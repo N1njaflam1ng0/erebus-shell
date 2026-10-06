@@ -19,6 +19,7 @@
       defaultWallpaper = cfg.wallpaper.default;
       screenshotDir = cfg.screenshotDirectory;
       clipboardMaxItems = cfg.clipboard.maxItems;
+      bitwardenClear = cfg.bitwarden.clearAfter;
     };
 
     shell = import ./_package {
@@ -108,6 +109,12 @@
         type = types.ints.positive;
         default = 500;
         description = "Clipboard history entries kept; pins do not count.";
+      };
+
+      bitwarden.clearAfter = mkOption {
+        type = types.ints.unsigned;
+        default = 30;
+        description = "Seconds before a secret copied from Bitwarden is cleared from the clipboard; 0 keeps it.";
       };
 
       autostart = mkOption {

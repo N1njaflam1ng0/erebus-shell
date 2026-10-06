@@ -32,8 +32,11 @@ Singleton {
   property real mediaAnchorX: 0
   property bool clipboardOpen: false
   property string clipboardMonitorId: ""
+  property bool bitwardenOpen: false
+  property string bitwardenMonitorId: ""
   property bool overlayOpen: root.launcherOpen || root.trayMenuOpen || root.calendarOpen
     || root.wifiOpen || root.sysOpen || root.mediaOpen || root.clipboardOpen
+    || root.bitwardenOpen
   property QsMenuHandle activeMenu: null
   property bool trayMenuOpen: false
   property int menuDirection: Qt.LeftToRight
@@ -83,6 +86,7 @@ Singleton {
     root.closeSys()
     root.closeMedia()
     root.closeClipboard()
+    root.closeBitwarden()
     if (root.trayMenuOpen) root.closeTrayMenu()
     launcherMonitorId = id
     if (index >= 0) {
@@ -202,6 +206,25 @@ Singleton {
     }
   }
 
+  // Centred and modal like the clipboard: its filter takes the keyboard.
+  function openBitwarden(id = Config.primaryDisplay) {
+    root.closeAll()
+    root.bitwardenMonitorId = id
+    root.bitwardenOpen = true
+  }
+
+  function closeBitwarden() {
+    root.bitwardenOpen = false
+  }
+
+  function toggleBitwarden(id = Config.primaryDisplay) {
+    if (root.bitwardenOpen && root.bitwardenMonitorId === id) {
+      closeBitwarden()
+    } else {
+      openBitwarden(id)
+    }
+  }
+
   // Escape and click-outside. The launcher is guarded because closing it
   // restarts the reset timer, which would clobber a launcher opened meanwhile.
   function closeAll() {
@@ -210,6 +233,7 @@ Singleton {
     root.closeSys()
     root.closeMedia()
     root.closeClipboard()
+    root.closeBitwarden()
     if (root.trayMenuOpen) root.closeTrayMenu()
     if (root.launcherOpen) root.closeLauncher()
   }
