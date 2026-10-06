@@ -5,15 +5,46 @@
 # every rebuild and broke outright on GC -- that is what noctaliaRepointAssignments
 # existed to sed around. Here the state file stores paths RELATIVE to the wallpaper
 # root, resolved against the current root at apply time, so churn cannot break it.
-{ self, inputs, ... }: {
-  flake.homeModules.wallpaper = { pkgs, lib, ... }:
-  let
+{
+  self,
+  inputs,
+  ...
+}: {
+  flake.homeModules.wallpaper = {
+    pkgs,
+    lib,
+    ...
+  }: let
     gslapper = "${inputs.gslapper.packages.${pkgs.stdenv.hostPlatform.system}.gslapper}/bin/gslapper";
     hyprctl = "${inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland}/bin/hyprctl";
     root = "${self}/assets/backgrounds";
     # Fallback for any output with no saved choice -- otherwise a fresh login, or
     # a newly plugged-in monitor, comes up with no wallpaper at all.
     default = "animated/large-cherry-blossom-tree.1920x1080.mp4";
+
+    # One small JPEG per wallpaper at <rel>.jpg, for the launcher's picker cards.
+    # Videos get a single frame. Built from the same root, so it only rebuilds
+    # when assets/backgrounds changes, and Qt never decodes a 4K original just
+    # to draw a 300px-tall card.
+    thumbs =
+      pkgs.runCommand "erebus-wallpaper-thumbs" {
+        nativeBuildInputs = [pkgs.ffmpeg-headless];
+      } ''
+        cd ${root}
+        find . -type f \
+            \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \
+               -o -iname '*.mp4' -o -iname '*.mkv' -o -iname '*.webm' \) -print0 |
+          while IFS= read -r -d "" f; do
+            rel="''${f#./}"
+            mkdir -p "$out/$(dirname "$rel")"
+            case "''${rel,,}" in
+              *.mp4|*.mkv|*.webm) seek="-ss 1" ;;
+              *) seek="" ;;
+            esac
+            ffmpeg -nostdin -loglevel error $seek -i "$rel" -frames:v 1 \
+              -vf scale=480:-2 -q:v 4 "$out/$rel.jpg"
+          done
+      '';
 
     wallpaper = pkgs.writeShellScriptBin "erebus-wallpaper" ''
       set -eu
@@ -29,10 +60,12 @@
       _is_video() { case "''${1,,}" in *.mp4|*.mkv|*.webm|*.avi|*.mov) return 0 ;; *) return 1 ;; esac; }
 
       # Relative paths only, so a new store path or a GC cannot invalidate state.
+      # Each line is "<rel>\t<thumbnail>"; the thumbnail is only ever read live.
       _list() { ( cd "$ROOT" && find . -type f \
           \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \
              -o -iname '*.mp4' -o -iname '*.mkv' -o -iname '*.webm' \) \
-          | sed 's|^\./||' | sort ); }
+          | sed 's|^\./||' | sort \
+          | while IFS= read -r rel; do printf '%s\t%s\n' "$rel" "${thumbs}/$rel.jpg"; done ); }
 
       _outputs() { ${hyprctl} -j monitors | $jq -r '.[].name'; }
 

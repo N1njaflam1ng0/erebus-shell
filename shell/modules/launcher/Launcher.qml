@@ -316,7 +316,25 @@ Item {
           layout.onAccept(entry)
         }
 
-        delegate: LauncherItem {
+        // Wallpapers get wide preview cards; every other mode the regular card.
+        delegate: GlobalState.launcherMode === "wallpaper" ? wallpaperDelegate : itemDelegate
+      }
+
+      Component {
+        id: wallpaperDelegate
+        WallpaperItem {
+          required property var modelData
+          name: modelData?.name ?? ""
+          folder: modelData?.folder ?? ""
+          thumb: modelData?.thumb ?? ""
+          isVideo: modelData?.isVideo ?? false
+          onClicked: launcherList.accept(modelData)
+        }
+      }
+
+      Component {
+        id: itemDelegate
+        LauncherItem {
           required property var modelData
 
           iconSource: {

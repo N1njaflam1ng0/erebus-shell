@@ -197,8 +197,9 @@ Singleton {
   }
 
   // ---- Wallpapers ------------------------------------------------------------
-  // `erebus-wallpaper list` emits paths relative to the wallpaper root, so the
-  // stored selection survives a rebuild or a store GC.
+  // `erebus-wallpaper list` emits "<rel>\t<thumbnail>" per line. The rel path is
+  // relative to the wallpaper root, so the stored selection survives a rebuild
+  // or a store GC; the thumbnail is a prebuilt JPEG for the picker card.
   property list<var> wallpaperEntries: []
   property list<var> wallpaperData: wallpaperEntries.map(a => ({ name: Fuzzy.prepare(a.name), entry: a }))
 
@@ -211,8 +212,11 @@ Singleton {
     stdout: StdioCollector {
       onStreamFinished: {
         const out = [];
-        for (const rel of this.text.split("\n")) {
-          if (!rel.length) continue;
+        for (const line of this.text.split("\n")) {
+          if (!line.length) continue;
+          const tab = line.indexOf("\t");
+          const rel = tab < 0 ? line : line.slice(0, tab);
+          const thumb = tab < 0 ? "" : line.slice(tab + 1);
           const isVideo = /\.(mp4|mkv|webm|avi|mov)$/i.test(rel);
           const slash = rel.lastIndexOf("/");
           const folder = slash > 0 ? rel.slice(0, slash) : "";
@@ -224,6 +228,9 @@ Singleton {
             genericName: isVideo ? "Video" : "Image",
             categories: ["Wallpaper", folder],
             iconId: isVideo ? "video-x-generic" : "image-x-generic",
+            thumb: thumb.length ? `file://${thumb}` : "",
+            folder: folder,
+            isVideo: isVideo,
             script: [Host.wallpaper, "set-all", rel]
           });
         }
