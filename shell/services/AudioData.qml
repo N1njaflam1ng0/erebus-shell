@@ -37,7 +37,7 @@ Singleton {
   readonly property var pwNodes: Pipewire.nodes.values
   property list<PwNode> streamNodes: pwNodes.filter(n => n.isStream)
   // "Something is capturing the microphone" must not count our own plumbing:
-  // the rnnoise filter-chain (modules/features/system/noise-cancellation.nix)
+  // the rnnoise filter-chain (erebus: modules/features/system/noise-cancellation.nix)
   // registers capture.rnnoise_source as a passive input stream that is live for
   // the whole session, and cava is a capture client this service spawns itself.
   // Matched on `name` rather than `properties` because name is a constant

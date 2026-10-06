@@ -1,6 +1,6 @@
 // Adapted from roosta/dotfiles (.config/quickshell/config/Config.qml, GPLv3).
 // Host-specific values moved out to Host.qml; roosta's ~/scripts entries replaced
-// with the helper binaries built in modules/features/desktop/quickshell/.
+// with the helper binaries built from scripts/ (nix/_helpers/).
 
 pragma Singleton
 pragma ComponentBehavior: Bound

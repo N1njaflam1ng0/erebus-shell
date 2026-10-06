@@ -1,7 +1,7 @@
 // Month grid + Google Calendar events for modules/calendar/CalendarPanel.qml.
 //
-// Events come from the `erebus-calendar` helper (modules/features/desktop/
-// quickshell/calendar.nix), which reads Evolution Data Server and emits JSON.
+// Events come from the `erebus-calendar` helper (scripts/erebus-calendar.sh
+// and nix/_helpers/default.nix), which reads Evolution Data Server and emits JSON.
 // Adding the Google account is a one-time step -- see `erebus-calendar auth`.
 
 pragma Singleton

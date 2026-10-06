@@ -1,10 +1,10 @@
 // Host-specific values: monitor names, audio sinks, and the helper binaries the
 // shell shells out to.
 //
-// This checked-in copy uses bare binary names so `qs -p assets/quickshell` works
-// straight from a dev shell. The Nix module overwrites it with a generated copy
+// This checked-in copy uses bare binary names so `qs -p shell` works
+// straight from `nix develop`. The home-manager module overwrites it with a generated copy
 // that pins absolute store paths and the real per-host monitor layout — see
-// modules/features/desktop/quickshell/quickshell.nix.
+// nix/_package/default.nix.
 
 pragma Singleton
 import Quickshell

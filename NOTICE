@@ -1,0 +1,5 @@
+erebus-shell is licensed under the GNU General Public License v3 (see LICENSE).
+
+The QML under shell/ is adapted from roosta/dotfiles
+(https://github.com/roosta/dotfiles), GPLv3, by Daniel Berg. Per-file headers
+credit the original where it applies.
