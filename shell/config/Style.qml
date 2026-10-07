@@ -35,6 +35,9 @@ Singleton {
     readonly property int radius: 0 * Config.scale
     readonly property real borderWidth: 1 * Config.scale
     readonly property int sliderWidth: 120 * Config.scale
+    // SysmonWidget's usage rings: outer diameter and stroke.
+    readonly property int ringSize: 26 * Config.scale
+    readonly property real ringStroke: 2.5 * Config.scale
   }
   readonly property Bar bar: Bar {}
 

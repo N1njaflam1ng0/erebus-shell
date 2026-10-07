@@ -164,6 +164,8 @@
         '';
       };
 
+      sysmon = qmlTest "sysmon" {strict = true;};
+
 
       bitwarden = pkgs.runCommand "erebus-bitwarden-test" {
         nativeBuildInputs = [bitwardenStubbed pkgs.jq (stub "wl-copy") (stub "rbw")];
