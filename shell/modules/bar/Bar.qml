@@ -108,10 +108,13 @@ Item {
         RowLayout {
           spacing: Style.spacing.p1
           anchors.right: parent.right
+          // Usage rings, then the battery ring beside the connectivity it
+          // shares a glance with.
           SysmonWidget { }
+          Separator {}
+          BatteryWidget { }
           NetworkWidget { monitorId: root.monitorId }
           BluetoothWidget { }
-          BatteryWidget { }
           Separator {}
           Clock { monitorId: root.monitorId }
           Separator {}

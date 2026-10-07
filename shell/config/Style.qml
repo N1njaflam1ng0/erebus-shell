@@ -43,6 +43,8 @@ Singleton {
 
   component Launcher: QtObject {
     readonly property int height: 300
+    // The notification view's count / "Clear all" strip above the list.
+    readonly property int headerHeight: 28 * Config.scale
   }
   readonly property Launcher launcher: Launcher { }
 

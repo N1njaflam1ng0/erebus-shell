@@ -3,6 +3,7 @@
 import QtQuick
 import Quickshell
 import qs.components
+import qs.config
 import qs.modules.bar
 
 ShellRoot {
@@ -47,6 +48,8 @@ ShellRoot {
         if (!/^RAM \d+\.\d \/ \d+\.\d GB \(40%\)$/.test(sysmon.memoryText)) root.fail(`ram text: ${sysmon.memoryText}`);
         if (sysmon.cpuRing.tint === sysmon.cpuRing.trackColor) root.fail("cpu tint");
         if (Math.abs(sysmon.cpuRing.clamped - 0.42) > 1e-9) root.fail("cpu ring follows the reading");
+        if (sysmon.cpuRing.label.font.family !== Style.font.symbols) root.fail("glyph rings keep the symbols face");
+        if (sysmon.cpuRing.label.text !== sysmon.cpuRing.glyph) root.fail("glyph ring shows its glyph");
         root.calmCpu = sysmon.cpuTint;
         root.calmMemory = sysmon.memoryTint;
         root.shot("sysmon-calm");
