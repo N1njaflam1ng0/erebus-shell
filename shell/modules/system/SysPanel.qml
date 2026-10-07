@@ -412,7 +412,7 @@ Item {
 
       // ── Resources ────────────────────────────────────────────────────
       StatRow {
-        glyph: ""
+        glyph: "\u{F0EE0}"
         label: "CPU"
         history: ResourceUsage.cpuUsageHistory
         maxValue: 1.0
@@ -630,7 +630,7 @@ Item {
         }
         // The two labels double as the sort control; the active one is tinted.
         IconButton {
-          glyph: ""
+          glyph: "\u{F0EE0}"
           label: "cpu"
           opacity: Processes.sortKey === "%cpu" ? 1 : 0.5
           onActivated: Processes.setSort("%cpu")

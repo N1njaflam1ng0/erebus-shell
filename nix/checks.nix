@@ -78,6 +78,13 @@
         touch $out
       '';
 
+      # Nerd Font glyphs are private-use codepoints that some editors and tools
+      # drop silently, leaving an icon-less row; write them as "\u{...}" escapes.
+      glyphs = pkgs.runCommand "erebus-glyphs-test" {} ''
+        if grep -rnE '^\s*glyph: ""' ${../shell}; then echo "FAIL: empty glyph"; exit 1; fi
+        touch $out
+      '';
+
       calendar = pkgs.runCommand "erebus-calendar-test" {nativeBuildInputs = [calendarStubbed pkgs.jq];} ''
         bash ${./_helpers/calendar-test.sh}
         touch $out
