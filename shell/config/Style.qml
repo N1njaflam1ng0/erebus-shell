@@ -35,6 +35,9 @@ Singleton {
     readonly property int radius: 0 * Config.scale
     readonly property real borderWidth: 1 * Config.scale
     readonly property int sliderWidth: 120 * Config.scale
+    // SysmonWidget's usage rings: outer diameter and stroke.
+    readonly property int ringSize: 26 * Config.scale
+    readonly property real ringStroke: 2.5 * Config.scale
   }
   readonly property Bar bar: Bar {}
 
@@ -87,6 +90,15 @@ Singleton {
     readonly property int sparkHeight: 14 * Config.scale
   }
   readonly property Sysmon system: Sysmon { }
+
+  component Audio: QtObject {
+    readonly property int width: 360 * Config.scale
+    readonly property int rowHeight: 28 * Config.scale
+    // Past this the panel scrolls rather than growing down the screen, which
+    // only happens with a lot of devices or applications at once.
+    readonly property int maxHeight: 620 * Config.scale
+  }
+  readonly property Audio audio: Audio { }
 
   component Font: QtObject {
     readonly property string main: "CaskaydiaCove Nerd Font"

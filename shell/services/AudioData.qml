@@ -47,12 +47,57 @@ Singleton {
   }
   property list<PwNode> audioIn: streamNodes.filter(s => !s.isSink && s?.audio && root.isRealCapture(s))
 
+  // What the audio panel lists. `type` is fixed per node (from its media.class),
+  // so these only re-filter when nodes come and go. Exact matches on purpose:
+  // duplex nodes and video nodes are neither a speaker nor a microphone.
+  property list<PwNode> sinks: pwNodes.filter(n => n.type === PwNodeType.AudioSink && n.audio)
+  property list<PwNode> sources: pwNodes.filter(n => n.type === PwNodeType.AudioSource && n.audio)
+  // Applications playing audio, one row each in the panel.
+  property list<PwNode> appStreams: pwNodes.filter(n => n.type === PwNodeType.AudioOutStream && n.audio)
 
   property real volume: sink?.audio.volume ?? 0
   property var bars: []
 
   PwObjectTracker {
     objects: [root.sink, root.source]
+  }
+
+  // Volume and mute only update on bound nodes. Bound only while the panel is
+  // open: every stream an app opens would otherwise stay bound for the session.
+  PwObjectTracker {
+    objects: GlobalState.audioOpen ? [...root.sinks, ...root.sources, ...root.appStreams] : []
+  }
+
+  // Bar glyph for a sink: its Config.outputs icon, else a generic speaker. Never
+  // "" -- an empty label collapses the bar button to zero width.
+  readonly property string fallbackSinkIcon: "󰓃"
+  function sinkIcon(node) {
+    if (!node) return root.fallbackSinkIcon
+    const obj = Config.outputs.find(o => o.sink === node.name)
+    return (obj && obj.icon) ? obj.icon : root.fallbackSinkIcon
+  }
+
+  // Human-readable name. Streams prefer the application ("Firefox") over the
+  // stream's own media name ("AudioStream"); devices their description.
+  function nodeLabel(node) {
+    if (!node) return ""
+    if (node.isStream) {
+      const app = node.properties?.["application.name"]
+      if (app) return app
+    }
+    return node.description || node.nickname || node.name || ""
+  }
+
+  // Makes it the default and remembers it as preferred, like `wpctl set-default`.
+  function setDefaultSink(node) {
+    if (node) Pipewire.preferredDefaultAudioSink = node
+  }
+  function setDefaultSource(node) {
+    if (node) Pipewire.preferredDefaultAudioSource = node
+  }
+
+  function toggleNodeMute(node) {
+    if (node?.audio) node.audio.muted = !node.audio.muted
   }
 
   // https://github.com/end-4/dots-hyprland/blob/446504ad427297dcbe5ee4a3d5bda1c458207cd9/dots/.config/quickshell/ii/services/Audio.qml#L60

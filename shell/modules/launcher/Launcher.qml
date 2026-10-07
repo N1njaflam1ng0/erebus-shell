@@ -44,6 +44,9 @@ Item {
   // and rebuilding a hidden list on every keystroke.
   readonly property bool owner: GlobalState.launcherMonitorId === root.monitorId
 
+  // Exposed for tests/notifications.
+  readonly property alias clearAllButton: clearAll
+
   // Only render while on-screen or mid-transition
   visible: launcher.y > -Style.launcher.height
 
@@ -314,19 +317,40 @@ Item {
 
       }
 
-      LauncherList {
-        monitorId: root.monitorId
-        id: launcherList
+      RowLayout {
+        Layout.fillWidth: true
+        Layout.fillHeight: true
+        spacing: 0
 
-        sourceModel: layout.sourceData
+        LauncherList {
+          monitorId: root.monitorId
+          id: launcherList
 
-        signal accept(entry: var)
-        onAccept: (entry) => {
-          layout.onAccept(entry)
+          sourceModel: layout.sourceData
+
+          signal accept(entry: var)
+          onAccept: (entry) => {
+            layout.onAccept(entry)
+          }
+
+          // Wallpapers get wide preview cards; every other mode the regular card.
+          delegate: GlobalState.launcherMode === "wallpaper" ? wallpaperDelegate : itemDelegate
         }
 
-        // Wallpapers get wide preview cards; every other mode the regular card.
-        delegate: GlobalState.launcherMode === "wallpaper" ? wallpaperDelegate : itemDelegate
+        // A column of its own rather than an overlay, so it never covers a
+        // card. The launcher stays open afterwards, on the list's empty state.
+        IconButton {
+          id: clearAll
+          visible: root.owner
+            && GlobalState.launcherMode === "notifications"
+            && Notifications.list.length > 0
+          Layout.alignment: Qt.AlignTop
+          Layout.margins: Style.spacing.p2
+          glyph: "󰎟"
+          label: "Clear all"
+          danger: true
+          onActivated: Notifications.discardAllNotifications()
+        }
       }
 
       Component {

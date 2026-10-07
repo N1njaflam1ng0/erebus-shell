@@ -25,18 +25,11 @@ ExpandingButton {
   property bool muted: AudioData.ready && AudioData.sink.audio.muted
   property string mutedIcon: ""
 
-  // Falls back to a generic speaker rather than "" — an empty label collapses
-  // both this button and srcBtn to zero width, which is how the output picker
-  // ended up unclickable. Any sink not listed in Config.outputs (bluetooth,
-  // a newly plugged device) lands here.
-  readonly property string fallbackIcon: "󰓃"
-
-  function getSinkIcon(sink) {
-    if (!sink) { return root.fallbackIcon }
-    const obj = Config.outputs.find(o => o.sink === sink.name);
-    return (obj && obj.icon) ? obj.icon : root.fallbackIcon
-  }
-  buttonLabel: muted ? mutedIcon : getSinkIcon(AudioData.sink)
+  // sinkIcon never returns "": an empty label collapses both this button and
+  // srcBtn to zero width, which is how the output picker once ended up
+  // unclickable.
+  buttonLabel: muted ? mutedIcon : AudioData.sinkIcon(AudioData.sink)
+  open: GlobalState.audioOpen && GlobalState.audioMonitorId === root.monitorId
 
   // Expands when scrolled, not on every volume change: volume keys already get
   // the Osd, and expanding here re-laid out the bar on every monitor per tap.
@@ -65,6 +58,16 @@ ExpandingButton {
   }
 
   onRightClick: openAudioMenu
+
+  // Opens the audio panel. While scrolling has the inline slider out the
+  // button shows a chevron instead, and a click folds the slider back first.
+  onLeftClick: () => {
+    if (root.active) {
+      root.active = false
+    } else {
+      GlobalState.toggleAudio(root.monitorId)
+    }
+  }
 
   wheelHandler: (event) => {
     root.peek()
@@ -162,44 +165,9 @@ ExpandingButton {
     }
   }
 
-  Slider {
-    id: volumeSlider
+  VolumeSlider {
     visible: root.active
     implicitWidth: Style.bar.sliderWidth
-    from: 0.0
-    value: AudioData.sink?.audio.volume ?? 0
-    onMoved: AudioData.sink.audio.volume = value
-    to: 1.0
-    HoverHandler {
-      cursorShape: Qt.PointingHandCursor
-    }
-    background: Rectangle {
-      x: volumeSlider.leftPadding
-      y: volumeSlider.topPadding + volumeSlider.availableHeight / 2 - height / 2
-      implicitWidth: 200
-      implicitHeight: Style.spacing.p3
-      width: volumeSlider.availableWidth
-      height: implicitHeight
-      color: Style.colors.gray3
-
-      Rectangle {
-        width: volumeSlider.visualPosition * parent.width
-        height: parent.height
-        gradient: Gradient {
-          orientation: Gradient.Horizontal
-          GradientStop { position: 1; color: Style.colors.magenta }
-          GradientStop { position: 0; color: Style.colors.blue }
-        }
-      }
-    }
-    handle: Rectangle {
-      x: volumeSlider.leftPadding + volumeSlider.visualPosition * (volumeSlider.availableWidth - width)
-      y: volumeSlider.topPadding + volumeSlider.availableHeight / 2 - height / 2
-      implicitWidth: Style.spacing.p4
-      implicitHeight: Style.spacing.p3
-      radius: 0
-      color: volumeSlider.pressed ? Style.colors.brightMagenta : Style.colors.magenta
-      // border.color: Style.colors.magenta
-    }
+    node: AudioData.sink
   }
 }

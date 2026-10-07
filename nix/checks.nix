@@ -43,6 +43,8 @@
     qmlTest = name: {
       inputs ? [],
       setup ? "",
+      # Also fail on any JS TypeError/ReferenceError in the log, not just a missing PASS.
+      strict ? false,
     }:
       pkgs.runCommand "erebus-${name}-qml-test" {nativeBuildInputs = [pkgs.quickshell] ++ inputs;} ''
         export HOME=$PWD/home XDG_CACHE_HOME=$PWD/cache XDG_STATE_HOME=$PWD/state
@@ -53,6 +55,9 @@
         ${setup}
         timeout 60 quickshell -p cfg 2>&1 | tee log
         grep -q PASS log
+        ${lib.optionalString strict ''
+          if grep -E 'TypeError|ReferenceError' log; then echo "FAIL: script errors"; exit 1; fi
+        ''}
         touch $out
       '';
   in {
@@ -144,6 +149,25 @@
           erebus-clipboard store < image.png
         '';
       };
+
+      notifications = qmlTest "notifications" {
+        strict = true;
+        setup = ''
+          mkdir -p $XDG_CACHE_HOME/erebus
+          cat > $XDG_CACHE_HOME/erebus/notifications.json <<'EOF'
+          [
+            {"notificationId": 1, "appName": "Firefox", "summary": "Download finished", "body": "report.pdf", "time": 1700000000000, "isNotification": true, "urgency": "normal", "appIcon": "", "image": ""},
+            {"notificationId": 2, "appName": "Slack", "summary": "New message", "body": "hi", "time": 1700000100000, "isNotification": true, "urgency": "normal", "appIcon": "", "image": ""},
+            {"notificationId": 3, "appName": "erebus", "summary": "Battery low", "body": "15%", "time": 1700000200000, "isNotification": true, "urgency": "critical", "appIcon": "", "image": ""}
+          ]
+          EOF
+        '';
+      };
+
+      sysmon = qmlTest "sysmon" {strict = true;};
+
+      # No PipeWire in the sandbox: the panel's empty states and wiring only.
+      audio-panel = qmlTest "audio" {strict = true;};
 
       bitwarden = pkgs.runCommand "erebus-bitwarden-test" {
         nativeBuildInputs = [bitwardenStubbed pkgs.jq (stub "wl-copy") (stub "rbw")];

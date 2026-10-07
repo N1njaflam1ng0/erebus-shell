@@ -36,6 +36,8 @@ BorderRect {
   required property string monitorId
   required property string buttonLabel
   property bool isEmpty: false;
+  // Whether a dropdown this button opened is showing; tints the glyph.
+  property bool open: false
 
   property var onRightClick: () => {}
 
@@ -164,7 +166,8 @@ BorderRect {
         Text {
           anchors.centerIn: parent
           id: indicator
-          color: Style.colors.white
+          color: root.open ? Style.colors.accent : Style.colors.white
+          Behavior on color { ColorAnimation { duration: Style.durations.hover; easing.type: Easing.OutQuad } }
           font {
             family: Style.font.light
             pixelSize: Style.font.size3
