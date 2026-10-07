@@ -169,6 +169,9 @@
       # No UPower in the sandbox: the readings are fed in.
       battery = qmlTest "battery" {strict = true;};
 
+      # No NetworkManager in the sandbox: the network name is fed in.
+      network = qmlTest "network" {strict = true;};
+
       # No PipeWire in the sandbox: the panel's empty states and wiring only.
       audio-panel = qmlTest "audio" {strict = true;};
 
