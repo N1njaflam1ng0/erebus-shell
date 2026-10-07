@@ -178,7 +178,13 @@ Singleton {
   }
 
   function discardAllNotifications() {
+    const old = root.list
     root.list = []
+    root.unread = 0
+    // The wrappers are parented to this singleton, so dropping them from the
+    // list alone never frees them. Pending NotifTimers are left be: they look
+    // their notification up by id, find nothing, and destroy themselves.
+    old.forEach((notif) => notif.destroy())
     triggerListChange()
     notifFileView.setText(stringifyList(root.list));
     notifServer.trackedNotifications.values.forEach((notif) => {
