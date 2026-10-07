@@ -45,7 +45,7 @@ Item {
   readonly property bool owner: GlobalState.launcherMonitorId === root.monitorId
 
   // Exposed for tests/notifications.
-  readonly property alias clearAllButton: clearAll
+  readonly property alias notificationHeader: header
 
   // Only render while on-screen or mid-transition
   visible: launcher.y > -Style.launcher.height
@@ -317,40 +317,31 @@ Item {
 
       }
 
-      RowLayout {
+      // Above the list rather than beside it, so it never takes width from a
+      // card. The launcher stays open afterwards, on the list's empty state.
+      NotificationHeader {
+        id: header
+        visible: root.owner
+          && GlobalState.launcherMode === "notifications"
+          && Notifications.list.length > 0
+        count: Notifications.list.length
         Layout.fillWidth: true
-        Layout.fillHeight: true
-        spacing: 0
+        onActivated: Notifications.discardAllNotifications()
+      }
 
-        LauncherList {
-          monitorId: root.monitorId
-          id: launcherList
+      LauncherList {
+        monitorId: root.monitorId
+        id: launcherList
 
-          sourceModel: layout.sourceData
+        sourceModel: layout.sourceData
 
-          signal accept(entry: var)
-          onAccept: (entry) => {
-            layout.onAccept(entry)
-          }
-
-          // Wallpapers get wide preview cards; every other mode the regular card.
-          delegate: GlobalState.launcherMode === "wallpaper" ? wallpaperDelegate : itemDelegate
+        signal accept(entry: var)
+        onAccept: (entry) => {
+          layout.onAccept(entry)
         }
 
-        // A column of its own rather than an overlay, so it never covers a
-        // card. The launcher stays open afterwards, on the list's empty state.
-        IconButton {
-          id: clearAll
-          visible: root.owner
-            && GlobalState.launcherMode === "notifications"
-            && Notifications.list.length > 0
-          Layout.alignment: Qt.AlignTop
-          Layout.margins: Style.spacing.p2
-          glyph: "󰎟"
-          label: "Clear all"
-          danger: true
-          onActivated: Notifications.discardAllNotifications()
-        }
+        // Wallpapers get wide preview cards; every other mode the regular card.
+        delegate: GlobalState.launcherMode === "wallpaper" ? wallpaperDelegate : itemDelegate
       }
 
       Component {
