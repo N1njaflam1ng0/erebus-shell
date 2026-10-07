@@ -166,6 +166,8 @@
 
       sysmon = qmlTest "sysmon" {strict = true;};
 
+      # No PipeWire in the sandbox: the panel's empty states and wiring only.
+      audio-panel = qmlTest "audio" {strict = true;};
 
       bitwarden = pkgs.runCommand "erebus-bitwarden-test" {
         nativeBuildInputs = [bitwardenStubbed pkgs.jq (stub "wl-copy") (stub "rbw")];

@@ -91,6 +91,15 @@ Singleton {
   }
   readonly property Sysmon system: Sysmon { }
 
+  component Audio: QtObject {
+    readonly property int width: 360 * Config.scale
+    readonly property int rowHeight: 28 * Config.scale
+    // Past this the panel scrolls rather than growing down the screen, which
+    // only happens with a lot of devices or applications at once.
+    readonly property int maxHeight: 620 * Config.scale
+  }
+  readonly property Audio audio: Audio { }
+
   component Font: QtObject {
     readonly property string main: "CaskaydiaCove Nerd Font"
     readonly property string symbols: "Symbols Nerd Font"

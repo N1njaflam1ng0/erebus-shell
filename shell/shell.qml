@@ -21,6 +21,7 @@ import qs.modules.clipboard
 import qs.modules.bitwarden
 import qs.modules.network
 import qs.modules.media
+import qs.modules.audio
 import qs.modules.system
 import qs.modules.tray
 import QtQuick
@@ -119,6 +120,7 @@ ShellRoot {
             || (GlobalState.calendarOpen && GlobalState.calendarMonitorId === scope.monitorId)
             || (GlobalState.wifiOpen && GlobalState.wifiMonitorId === scope.monitorId)
             || (GlobalState.sysOpen && GlobalState.sysMonitorId === scope.monitorId)
+            || (GlobalState.audioOpen && GlobalState.audioMonitorId === scope.monitorId)
             || (GlobalState.mediaOpen && GlobalState.mediaMonitorId === scope.monitorId)
             || (GlobalState.clipboardOpen && GlobalState.clipboardMonitorId === scope.monitorId)
             || (GlobalState.bitwardenOpen && GlobalState.bitwardenMonitorId === scope.monitorId)
@@ -240,6 +242,10 @@ ShellRoot {
         }
 
         WifiPanel {
+          monitorId: scope.monitorId
+        }
+
+        AudioPanel {
           monitorId: scope.monitorId
         }
 

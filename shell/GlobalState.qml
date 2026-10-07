@@ -26,6 +26,8 @@ Singleton {
   property string wifiMonitorId: ""
   property bool sysOpen: false
   property string sysMonitorId: ""
+  property bool audioOpen: false
+  property string audioMonitorId: ""
   property bool mediaOpen: false
   property string mediaMonitorId: ""
   // Window x of the bar widget's centre; the panel hangs under it.
@@ -35,7 +37,7 @@ Singleton {
   property bool bitwardenOpen: false
   property string bitwardenMonitorId: ""
   property bool overlayOpen: root.launcherOpen || root.trayMenuOpen || root.calendarOpen
-    || root.wifiOpen || root.sysOpen || root.mediaOpen || root.clipboardOpen
+    || root.wifiOpen || root.sysOpen || root.audioOpen || root.mediaOpen || root.clipboardOpen
     || root.bitwardenOpen
   property QsMenuHandle activeMenu: null
   property bool trayMenuOpen: false
@@ -84,6 +86,7 @@ Singleton {
     root.closeCalendar()
     root.closeWifi()
     root.closeSys()
+    root.closeAudio()
     root.closeMedia()
     root.closeClipboard()
     root.closeBitwarden()
@@ -105,6 +108,7 @@ Singleton {
   // focus and doesn't bump the exclusion zone, it just floats over the windows.
   function openCalendar(id = Config.primaryDisplay) {
     root.closeSys()
+    root.closeAudio()
     root.closeWifi()
     root.calendarMonitorId = id
     root.calendarOpen = true
@@ -127,6 +131,7 @@ Singleton {
   // field is open. shell.qml handles that with OnDemand focus.
   function openWifi(id = Config.primaryDisplay) {
     root.closeSys()
+    root.closeAudio()
     root.closeCalendar()
     root.wifiMonitorId = id
     root.wifiOpen = true
@@ -150,6 +155,7 @@ Singleton {
   function openSys(id = Config.primaryDisplay) {
     root.closeWifi()
     root.closeCalendar()
+    root.closeAudio()
     root.sysMonitorId = id
     root.sysOpen = true
   }
@@ -163,6 +169,29 @@ Singleton {
       closeSys()
     } else {
       openSys(id)
+    }
+  }
+
+  // The audio panel shares the top-right corner with the calendar, wifi and
+  // system panels, so the four close each other. Like the system panel it
+  // never takes the keyboard.
+  function openAudio(id = Config.primaryDisplay) {
+    root.closeWifi()
+    root.closeCalendar()
+    root.closeSys()
+    root.audioMonitorId = id
+    root.audioOpen = true
+  }
+
+  function closeAudio() {
+    root.audioOpen = false
+  }
+
+  function toggleAudio(id = Config.primaryDisplay) {
+    if (root.audioOpen && root.audioMonitorId === id) {
+      closeAudio()
+    } else {
+      openAudio(id)
     }
   }
 
@@ -231,6 +260,7 @@ Singleton {
     root.closeCalendar()
     root.closeWifi()
     root.closeSys()
+    root.closeAudio()
     root.closeMedia()
     root.closeClipboard()
     root.closeBitwarden()
