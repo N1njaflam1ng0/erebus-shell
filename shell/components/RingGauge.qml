@@ -1,4 +1,5 @@
-// A glyph inside a ring that fills clockwise from twelve o'clock with `value`.
+// A glyph, or a short number, inside a ring that fills clockwise from twelve
+// o'clock with `value`.
 //
 // Shapes rather than a Canvas: a Canvas repaints its whole surface on every
 // change, while this only re-tessellates one arc. The track is a full circle
@@ -14,6 +15,8 @@ Item {
   // 0.0 - 1.0; anything outside is clamped.
   property real value: 0
   property string glyph: ""
+  // Drawn instead of the glyph when set, in the text face; sized so "100" fits.
+  property string text: ""
   property color tint: Style.colors.accent
   property color trackColor: Style.colors.gray3
   property int size: Style.bar.ringSize
@@ -65,11 +68,15 @@ Item {
     }
   }
 
+  // Exposed for tests.
+  readonly property alias label: labelText
+
   Text {
+    id: labelText
     anchors.centerIn: parent
-    text: root.glyph
+    text: root.text !== "" ? root.text : root.glyph
     color: root.tint
-    font.family: Style.font.symbols
-    font.pixelSize: Math.round(root.size * 0.45)
+    font.family: root.text !== "" ? Style.font.main : Style.font.symbols
+    font.pixelSize: Math.round(root.size * (root.text !== "" ? 0.36 : 0.45))
   }
 }
